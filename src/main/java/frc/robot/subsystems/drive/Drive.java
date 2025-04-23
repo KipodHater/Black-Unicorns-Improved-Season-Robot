@@ -104,7 +104,11 @@ public class Drive extends SubsystemBase {
         new SwerveModulePosition()
       };
   private SwerveDrivePoseEstimator poseEstimator =
-      new SwerveDrivePoseEstimator(kinematics, rawGyroRotation, lastModulePositions, new Pose2d()); // can switch this with potential kalman filter
+      new SwerveDrivePoseEstimator(
+          kinematics,
+          rawGyroRotation,
+          lastModulePositions,
+          new Pose2d()); // can switch this with potential kalman filter
 
   public Drive(
       GyroIO gyroIO,

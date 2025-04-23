@@ -1,8 +1,14 @@
 package frc.robot.subsystems.gripper;
 
-import frc.robot.subsystems.gripper.GripperConstants;
-public class GripperIOSparkMax implements GripperIO{
-    public GripperIOSparkMax(){
+import edu.wpi.first.math.controller.BangBangController;
+import edu.wpi.first.wpilibj.motorcontrol.spark.SparkMax;
 
-    }
+public class GripperIOSparkMax implements GripperIO {
+  private final SparkMax motor;
+  private final BangBangController motorBangBangController;
+
+  public private GripperIOSparkMax() {
+    motor = new SparkMax(GripperConstants.K_SPARK_ID);
+    motorBangBangController = new BangBangController();
+  }
 }
