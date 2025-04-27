@@ -4,6 +4,11 @@ public class GripperConstants {
   public static final double GRIPPER_KP = 0.1;
   public static final double GRIPPER_KI = 0;
   public static final double GRIPPER_KD = 0;
+
+  public static final double GRIPPER_KS = 0;
+  public static final double GRIPPER_KV = 0;
+  public static final double GRIPPER_KA = 0;
+
   public static final double KMAX_ACCEL = 0.5;
   public static final double KMAX_SPEED = 1;
 
@@ -17,4 +22,6 @@ public class GripperConstants {
 
   public static final boolean K_INVERTED = true;
   public static final boolean K_BRAKE = true;
+
+  public static final double VELOCITY_CONVERSION_FACTOR = 1;
 }

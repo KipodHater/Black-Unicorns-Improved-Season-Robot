@@ -17,7 +17,7 @@ public interface GripperIO {
 
   public default void setSpeedRPM(double speed) {}
 
-  public default void setVoltage(double voltage) {}
+  public default void setVoltageOpenLoop(double voltage) {}
 
   public default void stop() {}
 

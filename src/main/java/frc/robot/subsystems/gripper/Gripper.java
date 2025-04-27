@@ -5,42 +5,41 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Gripper extends SubsystemBase {
   // Add your code here
-  private GripperIO io;
-  protected final GripperIO.GripperIOInputs inputs;
+  private final GripperIO io;
+  private final GripperIOInputsAutoLogged inputs = new GripperIOInputsAutoLogged();
 
   public Gripper(GripperIO io) {
+
     this.io = io;
-
-    this.inputs = new GripperIO.GripperIOInputs();
   }
 
-  public void setGripperMotorSpeed(double speed) {
-    io.setSpeedRPM(speed);
-  }
+  // public void setGripperMotorSpeed(double speed) {
+  //   io.setSpeedRPM(speed);
+  // }
 
-  public void setGripperMotorVoltage(double voltage) {
-    io.setVoltage(voltage);
-  }
+  // public void setGripperMotorVoltage(double voltage) {
+  //   io.setVoltageOpenLoop(voltage);
+  // }
 
-  public void stopGripperMotor() {
-    io.stop();
-  }
+  // public void stopGripperMotor() {
+  //   io.stop();
+  // }
 
-  public void updateInputs() {
-    io.updateInputs(inputs);
-  }
+  // public void updateInputs() {
+  //   io.updateInputs(inputs);
+  // }
 
-  public double getGripperMotorSpeed() {
-    return inputs.gripperMotorRPM;
-  }
+  // public double getGripperMotorSpeed() {
+  //   return inputs.gripperMotorRPM;
+  // }
 
-  public double getGripperMotorVoltage() {
-    return inputs.gripperMotorVoltage;
-  }
+  // public double getGripperMotorVoltage() {
+  //   return inputs.gripperMotorVoltage;
+  // }
 
-  public double getGripperMotorTemp() {
-    return inputs.gripperMotorTemp;
-  }
+  // public double getGripperMotorTemp() {
+  //   return inputs.gripperMotorTemp;
+  // }
 
   public void setPID(double KP, double KI, double KD) {
     io.setPID(KP, KI, KD);
@@ -49,7 +48,7 @@ public class Gripper extends SubsystemBase {
   @Override
   public void periodic() {
 
-    updateInputs();
+    io.updateInputs(inputs);
 
     SmartDashboard.putNumber("Gripper/GripperSpeed", inputs.gripperMotorRPM);
 
