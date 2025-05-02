@@ -8,7 +8,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class SuperStructure extends SubsystemBase {
   /** Creates a new SuperStructure. */
-  public SuperStructure() {}
+  public SuperStructure() {
+    
+  }
 
   @Override
   public void periodic() {
