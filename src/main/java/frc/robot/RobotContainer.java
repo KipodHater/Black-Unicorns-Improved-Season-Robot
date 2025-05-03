@@ -30,6 +30,11 @@ import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
+import frc.robot.subsystems.gripper.Gripper;
+import frc.robot.subsystems.gripper.GripperIO;
+import frc.robot.subsystems.gripper.GripperIOSim;
+import frc.robot.subsystems.gripper.GripperIOSparkMax;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -41,6 +46,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Gripper gripper;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -60,6 +66,8 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
+        gripper = 
+            new Gripper(new GripperIOSparkMax());
         break;
 
       case SIM:
@@ -71,6 +79,9 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
+
+        gripper =
+            new Gripper(new GripperIOSim());
         break;
 
       default:
@@ -82,6 +93,8 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
+        gripper = 
+            new Gripper(new GripperIO() {});
         break;
     }
 

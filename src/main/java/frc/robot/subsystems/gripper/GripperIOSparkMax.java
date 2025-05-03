@@ -47,9 +47,9 @@ public class GripperIOSparkMax implements GripperIO {
     config
         .closedLoop
         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-        .pidf(GRIPPER_KP, GRIPPER_KI, GRIPPER_KD, 0);
+        .pidf(GAINS.KP(), GAINS.KI(), GAINS.KD(), 0);
 
-    ffController = new SimpleMotorFeedforward(GRIPPER_KS, GRIPPER_KV, GRIPPER_KA);
+    ffController = new SimpleMotorFeedforward(GAINS.KS(), GAINS.KV(), GAINS.KA());
 
     tryUntilOk(
         motor,

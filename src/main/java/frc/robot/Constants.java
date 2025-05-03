@@ -34,4 +34,6 @@ public final class Constants {
     /** Replaying from a log file. */
     REPLAY
   }
+
+  public static final double CYCLE_TIME = 0.02;
 }
