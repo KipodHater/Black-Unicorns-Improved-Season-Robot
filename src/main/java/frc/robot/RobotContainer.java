@@ -33,7 +33,7 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.Gripper;
 import frc.robot.subsystems.gripper.GripperIO;
 import frc.robot.subsystems.gripper.GripperIOSim;
-import frc.robot.subsystems.gripper.GripperIOSparkMax;
+import frc.robot.subsystems.gripper.GripperIOSpark;
 
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
@@ -67,7 +67,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         gripper = 
-            new Gripper(new GripperIOSparkMax());
+            new Gripper(new GripperIOSpark());
         break;
 
       case SIM:

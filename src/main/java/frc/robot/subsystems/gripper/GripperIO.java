@@ -5,7 +5,7 @@ import org.littletonrobotics.junction.AutoLog;
 public interface GripperIO {
 
   @AutoLog
-  class GripperIOInputs {
+  public static class GripperIOInputs {
     public boolean motorConnected = false;
 
     public double gripperMotorRPM = 0; // rots/minute

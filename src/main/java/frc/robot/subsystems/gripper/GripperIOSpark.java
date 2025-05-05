@@ -19,7 +19,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.filter.Debouncer;
 import java.util.function.DoubleSupplier;
 
-public class GripperIOSparkMax implements GripperIO {
+public class GripperIOSpark implements GripperIO {
   private final SparkMax motor;
   private SparkMaxConfig config;
   private final RelativeEncoder motorEncoder;
@@ -29,7 +29,7 @@ public class GripperIOSparkMax implements GripperIO {
 
   private final Debouncer sparkConnectedDebounce = new Debouncer(0.5);
 
-  public GripperIOSparkMax() {
+  public GripperIOSpark() {
     motor = new SparkMax(K_SPARK_ID, MotorType.kBrushless);
     motor.clearFaults();
 

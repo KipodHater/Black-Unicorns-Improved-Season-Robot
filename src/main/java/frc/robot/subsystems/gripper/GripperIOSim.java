@@ -42,8 +42,8 @@ public class GripperIOSim implements GripperIO {
     public void setSpeedRPM(double speed) {
         rpmVelocitySetpoint = speed;
         double ffVoltage = ffController.calculate(flywheeelSim.getAngularVelocityRPM());
-        appliedVoltage = MathUtil.clamp(ffVoltage + flywheelPIDController.calculate(flywheeelSim.getAngularVelocityRPM(), speed), -12, 12);
-        flywheeelSim.setInputVoltage(appliedVoltage);
+
+        setVoltageOpenLoop(ffVoltage + flywheelPIDController.calculate(flywheeelSim.getAngularVelocityRPM()));
     }
 
     @Override
