@@ -2,6 +2,9 @@ package frc.robot.subsystems.arm;
 
 import org.littletonrobotics.junction.AutoLog;
 
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+
+
 public interface ArmIO {
     @AutoLog
     public static class ArmIOInputes{
@@ -18,15 +21,17 @@ public interface ArmIO {
         public double followerCurrent = 0; // amps
     }
     
-    default void updateInputs(ArmIOInputes inputs) {}
+    public default void updateInputs(ArmIOInputes inputs) {}
 
-    default void runVoltage(double voltage) {}
+    public default void runVoltage(double voltage) {}
 
-    default void stop() {}
+    public default void stop() {}
 
-    default void runPosition(double position, double feedforward) {}
+    public default void runPosition(double position, double feedforward) {}
 
-    default void setPID(double KP, double KI, double KD) {}
+    public default void setPID(double KP, double KI, double KD) {}
 
-    default void setBrakeMode(boolean isBrake) {}
+    public default void setConstraints(Constraints constraints) {}
+
+    public default void setBrakeMode(boolean isBrake) {}
 }
