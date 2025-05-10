@@ -3,10 +3,14 @@ package frc.robot.subsystems.arm;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
+
 public class Arm {
 
   private final ArmIO io;
-  private ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
+  private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
+
+  private final ArmFeedforward feedforwardController = new ArmFeedforward(ArmConstants.GAINS.KS(), ArmConstants.GAINS.KG(), ArmConstants.GAINS.KV());
 
   // @RequiredArgsConstructor
   public enum ArmStates {
@@ -21,23 +25,27 @@ public class Arm {
 
   public Arm(ArmIO io){
     this.io = io;
+
+
   }
 
   public void periodic(){
     io.updateInputs(inputs);
     Logger.processInputs("Arm", inputs);
 
+    double ffVoltage = feedforwardController.calculate(inputs.positionDeg * Math.PI / 180.0, inputs.velocityDegPerSec * Math.PI / 180.0);
+
     switch(goal){
         case DOWN_INTAKE:
-            io.runPosition(0, 0);
+            io.runPosition(ArmConstants.BOT_ANGLE, ffVoltage);
             break;
 
         case MIDDLE_OUTTAKE:
-            io.runPosition(0, 0);
+            io.runPosition(ArmConstants.MID_ANGLE, ffVoltage);
             break;
 
         case UP_INTAKE:
-            io.runPosition(0, 0);
+            io.runPosition(ArmConstants.TOP_ANGLE, ffVoltage);
             break;
         
         default:

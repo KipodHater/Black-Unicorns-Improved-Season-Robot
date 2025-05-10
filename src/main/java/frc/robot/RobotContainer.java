@@ -24,6 +24,9 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.ArmIO;
+import frc.robot.subsystems.arm.ArmIOSpark;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
@@ -46,6 +49,7 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
   private final Gripper gripper;
+  private final Arm arm;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -66,6 +70,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         gripper = new Gripper(new GripperIOSpark());
+        arm = new Arm(new ArmIOSpark());
         break;
 
       case SIM:
@@ -79,6 +84,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
 
         gripper = new Gripper(new GripperIOSim());
+        arm = new Arm(new ArmIO() {});
         break;
 
       default:
@@ -91,6 +97,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {});
         gripper = new Gripper(new GripperIO() {});
+        arm = new Arm(new ArmIO() {});
         break;
     }
 
