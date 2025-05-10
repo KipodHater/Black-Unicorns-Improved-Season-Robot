@@ -34,7 +34,6 @@ import frc.robot.subsystems.gripper.Gripper;
 import frc.robot.subsystems.gripper.GripperIO;
 import frc.robot.subsystems.gripper.GripperIOSim;
 import frc.robot.subsystems.gripper.GripperIOSpark;
-
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -66,8 +65,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight));
-        gripper = 
-            new Gripper(new GripperIOSpark());
+        gripper = new Gripper(new GripperIOSpark());
         break;
 
       case SIM:
@@ -80,8 +78,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
 
-        gripper =
-            new Gripper(new GripperIOSim());
+        gripper = new Gripper(new GripperIOSim());
         break;
 
       default:
@@ -93,8 +90,7 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {});
-        gripper = 
-            new Gripper(new GripperIO() {});
+        gripper = new Gripper(new GripperIO() {});
         break;
     }
 

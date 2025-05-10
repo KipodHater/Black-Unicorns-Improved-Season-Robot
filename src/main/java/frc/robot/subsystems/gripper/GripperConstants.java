@@ -5,10 +5,10 @@ import frc.robot.Constants;
 public class GripperConstants {
 
   public static final Gains GAINS =
-  switch(Constants.currentMode){
-    case REAL -> new Gains(0.1, 0, 0, 0, 0, 0);
-    default -> new Gains(0.1, 0, 0, 0, 0, 0);
-  };
+      switch (Constants.currentMode) {
+        case REAL -> new Gains(0.1, 0, 0, 0, 0, 0);
+        default -> new Gains(0.1, 0, 0, 0, 0, 0);
+      };
 
   public static final double KMAX_ACCEL = 0.5;
   public static final double KMAX_SPEED = 1;
@@ -29,7 +29,6 @@ public class GripperConstants {
   public static final double gearRatio = 1;
 
   public static final double GRIPPER_MOMENT_OF_INNERTIA = 0.6; // kg* m^2
-
 
   public record Gains(double KP, double KI, double KD, double KS, double KV, double KA) {}
 }
