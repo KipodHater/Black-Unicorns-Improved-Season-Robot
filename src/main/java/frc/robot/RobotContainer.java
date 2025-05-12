@@ -26,6 +26,7 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.arm.Arm;
 import frc.robot.subsystems.arm.ArmIO;
+import frc.robot.subsystems.arm.ArmIOSim;
 import frc.robot.subsystems.arm.ArmIOSpark;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
@@ -84,7 +85,7 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.BackRight));
 
         gripper = new Gripper(new GripperIOSim());
-        arm = new Arm(new ArmIO() {});
+        arm = new Arm(new ArmIOSim());
         break;
 
       default:

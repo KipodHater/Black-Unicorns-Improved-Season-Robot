@@ -14,6 +14,12 @@ public class ArmConstants {
         default -> new Gains(0.1, 0, 0, 0, 0, 0, 0);
       };
 
+  public static final double ARM_GEAR_RATIO = 14.0 / (36.0 * 60.0); // 100:1
+  public static final double ARM_LENGTH_METERS = 1.0; // meters, change!
+  public static final double ARM_MOI = 1.5; // kg*m^2
+  public static final double MAX_ANGLE = 92.0; // degrees
+  public static final double MIN_ANGLE = -30.0; // degrees
+
   public static final int ARM_CURRENT_LIMIT = 12;
   public static final double ARM_ENCODER_OFFSET = 55.0 - 16 - 40 + 74 + 6;
   public static final double ARM_POSITION_TOLERANCE_DEG = 1.0;

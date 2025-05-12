@@ -24,7 +24,7 @@ public class GripperIOSim implements GripperIO {
 
     new FlywheelSim(
         LinearSystemId.createFlywheelSystem(
-            DCMotor.getNEO(1), GRIPPER_MOMENT_OF_INNERTIA, gearRatio),
+            DCMotor.getNEO(1), GRIPPER_MOMENT_OF_INNERTIA, GEAR_RATIO),
         DCMotor.getNEO(1));
 
     flywheelPIDController = new PIDController(GAINS.KP(), GAINS.KI(), GAINS.KD());

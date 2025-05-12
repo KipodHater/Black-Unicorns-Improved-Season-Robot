@@ -15,6 +15,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 
 import static frc.robot.util.SparkUtil.*;
+import static frc.robot.subsystems.arm.ArmConstants.*;
 
 public class ArmIOSpark implements ArmIO{
     
@@ -58,7 +59,7 @@ public class ArmIOSpark implements ArmIO{
         tryUntilOk(motor, 5, () -> motor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
         tryUntilOk(follower, 5, () -> follower.configure(followerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
 
-        armPIDController = new ProfiledPIDController(ArmConstants.GAINS.KP(), ArmConstants.GAINS.KI(), ArmConstants.GAINS.KD(), ArmConstants.ARM_CONSTRAINTS);
+        armPIDController = new ProfiledPIDController(GAINS.KP(), GAINS.KI(), GAINS.KD(), ARM_CONSTRAINTS);
     }
 
     @Override

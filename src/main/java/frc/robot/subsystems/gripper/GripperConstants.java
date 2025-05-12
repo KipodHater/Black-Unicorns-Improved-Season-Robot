@@ -26,7 +26,7 @@ public class GripperConstants {
 
   public static final double VELOCITY_CONVERSION_FACTOR = 1;
 
-  public static final double gearRatio = 1;
+  public static final double GEAR_RATIO = 1;
 
   public static final double GRIPPER_MOMENT_OF_INNERTIA = 0.6; // kg* m^2
 
