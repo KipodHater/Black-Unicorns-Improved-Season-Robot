@@ -1,16 +1,16 @@
 package frc.robot.subsystems.arm;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.math.controller.ArmFeedforward;
 
 public class Arm {
 
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
-  private final ArmFeedforward feedforwardController = new ArmFeedforward(ArmConstants.GAINS.KS(), ArmConstants.GAINS.KG(), ArmConstants.GAINS.KV());
+  private final ArmFeedforward feedforwardController =
+      new ArmFeedforward(ArmConstants.GAINS.KS(), ArmConstants.GAINS.KG(), ArmConstants.GAINS.KV());
 
   // @RequiredArgsConstructor
   public enum ArmStates {
@@ -20,40 +20,40 @@ public class Arm {
     IDLE
   }
 
-  @AutoLogOutput (key = "Arm/Goal")
-  private ArmStates goal;
+  @AutoLogOutput(key = "Arm/Goal")
+  private ArmStates goal = ArmStates.IDLE;
 
-  public Arm(ArmIO io){
+  public Arm(ArmIO io) {
     this.io = io;
-
-
   }
 
-  public void periodic(){
+  public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Arm", inputs);
 
-    double ffVoltage = feedforwardController.calculate(inputs.positionDeg * Math.PI / 180.0, inputs.velocityDegPerSec * Math.PI / 180.0);
+    double ffVoltage =
+        feedforwardController.calculate(
+            inputs.positionDeg * Math.PI / 180.0, inputs.velocityDegPerSec * Math.PI / 180.0);
 
-    switch(goal){
-        case DOWN_INTAKE:
-            io.runPosition(ArmConstants.BOT_ANGLE, ffVoltage);
-            break;
+    switch (goal) {
+      case DOWN_INTAKE:
+        io.runPosition(ArmConstants.BOT_ANGLE, ffVoltage);
+        break;
 
-        case MIDDLE_OUTTAKE:
-            io.runPosition(ArmConstants.MID_ANGLE, ffVoltage);
-            break;
+      case MIDDLE_OUTTAKE:
+        io.runPosition(ArmConstants.MID_ANGLE, ffVoltage);
+        break;
 
-        case UP_INTAKE:
-            io.runPosition(ArmConstants.TOP_ANGLE, ffVoltage);
-            break;
-        
-        default:
-            io.stop();
+      case UP_INTAKE:
+        io.runPosition(ArmConstants.TOP_ANGLE, ffVoltage);
+        break;
+
+      default:
+        io.stop();
     }
   }
 
-  public void setArmGoal(ArmStates desiredGoal){
+  public void setArmGoal(ArmStates desiredGoal) {
     goal = desiredGoal;
   }
 

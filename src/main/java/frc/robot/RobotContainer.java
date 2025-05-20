@@ -24,20 +24,14 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.arm.Arm;
-import frc.robot.subsystems.arm.ArmIO;
-import frc.robot.subsystems.arm.ArmIOSim;
-import frc.robot.subsystems.arm.ArmIOSpark;
+import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
-import frc.robot.subsystems.gripper.Gripper;
-import frc.robot.subsystems.gripper.GripperIO;
-import frc.robot.subsystems.gripper.GripperIOSim;
-import frc.robot.subsystems.gripper.GripperIOSpark;
+import frc.robot.subsystems.gripper.*;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
