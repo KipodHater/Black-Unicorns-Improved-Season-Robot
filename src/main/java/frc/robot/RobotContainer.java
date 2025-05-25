@@ -16,6 +16,7 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -32,6 +33,8 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
+import frc.robot.subsystems.vision.*;
+
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -45,6 +48,7 @@ public class RobotContainer {
   private final Drive drive;
   private final Gripper gripper;
   private final Arm arm;
+  private final Vision vision;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -66,6 +70,8 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         gripper = new Gripper(new GripperIOSpark());
         arm = new Arm(new ArmIOSpark());
+        vision = new Vision(new VisionIO[] {new VisionIOPhoton("", new Transform3d()), new VisionIOPhoton("", new Transform3d()),
+                                                 new VisionIOLimelight("limelight-tsachi",RobotState.getInstance() :: getYaw)});
         break;
 
       case SIM:
@@ -80,6 +86,8 @@ public class RobotContainer {
 
         gripper = new Gripper(new GripperIOSim());
         arm = new Arm(new ArmIOSim());
+        vision = new Vision(new VisionIO[] {new VisionIOPhotonSim("", new Transform3d(), RobotState.getInstance():: getEstimatedPosition),
+                            new VisionIOPhotonSim("", new Transform3d(), RobotState.getInstance():: getEstimatedPosition)});
         break;
 
       default:
@@ -93,6 +101,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         gripper = new Gripper(new GripperIO() {});
         arm = new Arm(new ArmIO() {});
+        vision = new Vision(new VisionIO[] {});
         break;
     }
 
