@@ -34,7 +34,6 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
 import frc.robot.subsystems.vision.*;
-
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -70,8 +69,13 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         gripper = new Gripper(new GripperIOSpark());
         arm = new Arm(new ArmIOSpark());
-        vision = new Vision(new VisionIO[] {new VisionIOPhoton("", new Transform3d()), new VisionIOPhoton("", new Transform3d()),
-                                                 new VisionIOLimelight("limelight-tsachi",RobotState.getInstance() :: getYaw)});
+        vision =
+            new Vision(
+                new VisionIO[] {
+                  new VisionIOPhoton("", new Transform3d()),
+                  new VisionIOPhoton("", new Transform3d()),
+                //   new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
+                });
         break;
 
       case SIM:
@@ -86,8 +90,14 @@ public class RobotContainer {
 
         gripper = new Gripper(new GripperIOSim());
         arm = new Arm(new ArmIOSim());
-        vision = new Vision(new VisionIO[] {new VisionIOPhotonSim("", new Transform3d(), RobotState.getInstance():: getEstimatedPosition),
-                            new VisionIOPhotonSim("", new Transform3d(), RobotState.getInstance():: getEstimatedPosition)});
+        vision =
+            new Vision(
+                new VisionIO[] {
+                  new VisionIOPhotonSim(
+                      "", new Transform3d(), RobotState.getInstance()::getEstimatedPosition),
+                  new VisionIOPhotonSim(
+                      "", new Transform3d(), RobotState.getInstance()::getEstimatedPosition)
+                });
         break;
 
       default:
