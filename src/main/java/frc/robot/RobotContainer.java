@@ -13,10 +13,19 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degree;
+import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -27,13 +36,20 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
+import frc.robot.subsystems.drive.GyroIOSim;
 import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
+import frc.robot.subsystems.gripper.Gripper.GripperStates;
 import frc.robot.subsystems.vision.*;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
+import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -48,6 +64,7 @@ public class RobotContainer {
   private final Gripper gripper;
   private final Arm arm;
   private final Vision vision;
+  private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
@@ -66,7 +83,8 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontLeft),
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
-                new ModuleIOTalonFX(TunerConstants.BackRight));
+                new ModuleIOTalonFX(TunerConstants.BackRight),
+                (robotPose) -> {});
         gripper = new Gripper(new GripperIOSpark());
         arm = new Arm(new ArmIOSpark());
         vision =
@@ -74,21 +92,29 @@ public class RobotContainer {
                 new VisionIO[] {
                   new VisionIOPhoton("", new Transform3d()),
                   new VisionIOPhoton("", new Transform3d()),
-                //   new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
+                  //   new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
                 });
         break;
 
       case SIM:
         // Sim robot, instantiate physics sim IO implementations
+
+        driveSimulation =
+            new SwerveDriveSimulation(
+                DriveConstants.mapleSimConfig, new Pose2d(3, 3, new Rotation2d()));
+
+        SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
+
         drive =
             new Drive(
-                new GyroIO() {},
-                new ModuleIOSim(TunerConstants.FrontLeft),
-                new ModuleIOSim(TunerConstants.FrontRight),
-                new ModuleIOSim(TunerConstants.BackLeft),
-                new ModuleIOSim(TunerConstants.BackRight));
+                new GyroIOSim(driveSimulation.getGyroSimulation()),
+                new ModuleIOSim(driveSimulation.getModules()[0]),
+                new ModuleIOSim(driveSimulation.getModules()[1]),
+                new ModuleIOSim(driveSimulation.getModules()[2]),
+                new ModuleIOSim(driveSimulation.getModules()[3]),
+                (robotPose) -> driveSimulation.getSimulatedDriveTrainPose());
 
-        gripper = new Gripper(new GripperIOSim());
+        gripper = new Gripper(new GripperIOSim(driveSimulation));
         arm = new Arm(new ArmIOSim());
         vision =
             new Vision(
@@ -108,7 +134,8 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {},
-                new ModuleIO() {});
+                new ModuleIO() {},
+                (robotPose) -> {});
         gripper = new Gripper(new GripperIO() {});
         arm = new Arm(new ArmIO() {});
         vision = new Vision(new VisionIO[] {});
@@ -151,7 +178,7 @@ public class RobotContainer {
             drive,
             () -> -controller.getLeftY(),
             () -> -controller.getLeftX(),
-            () -> -controller.getRightX()));
+            () -> -controller.getRawAxis(2)));
 
     // Lock to 0° when A button is held
     controller
@@ -166,16 +193,51 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    // Reset gyro to 0° when B button is pressed
     controller
-        .b()
-        .onTrue(
-            Commands.runOnce(
-                    () ->
-                        drive.setPose(
-                            new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-                    drive)
-                .ignoringDisable(true));
+        .button(6)
+        .onTrue(Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.OUTTAKE_STRONG)));
+    controller
+        .button(5)
+        .onTrue(Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.INTAKE)));
+
+    // Reset gyro to 0° when B button is pressed
+
+    final Runnable resetGyro =
+        Constants.currentMode == Constants.Mode.SIM
+            ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose())
+            : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d()));
+
+    controller.b().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
+
+    // Simulation Buttons
+    if (Constants.currentMode == Constants.Mode.SIM) {
+      // L1 Placement
+      controller
+          .b()
+          .onTrue(
+              Commands.runOnce(
+                  () ->
+                      SimulatedArena.getInstance()
+                          .addGamePieceProjectile(
+                              new ReefscapeCoralOnFly(
+                                  // Obtain robot position from drive simulation
+                                  new Translation2d(1, 1),
+                                  // The scoring mechanism is installed at (0.46, 0) (meters) on the
+                                  // robot
+                                  new Translation2d(0, 0),
+                                  // Obtain robot speed from drive simulation
+                                  new ChassisSpeeds(),
+                                  // Obtain robot facing from drive simulation
+                                  new Rotation2d(58),
+                                  // The height at which the coral is ejected
+                                  Distance.ofRelativeUnits(2, Meter),
+                                  // The initial speed ofzz the coral
+                                  LinearVelocity.ofRelativeUnits(1.5, MetersPerSecond),
+                                  // The coral is ejected at a 35-degree slope
+                                  Angle.ofRelativeUnits(-45, Degree)))));
+    }
+    // Human Player
+
   }
 
   /**
@@ -186,4 +248,37 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     return autoChooser.get();
   }
+
+  public void periodic() {
+    gripper.periodic();
+  }
+
+  public void resetSimulation() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    drive.setPose(new Pose2d(3, 3, new Rotation2d()));
+    SimulatedArena.getInstance().resetFieldForAuto();
+  }
+
+  public void updateSimulation() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    SimulatedArena.getInstance().simulationPeriodic();
+    Logger.recordOutput(
+        "FieldSimulation/RobotPosition", driveSimulation.getSimulatedDriveTrainPose());
+    Logger.recordOutput(
+        "FieldSimulation/Coral", SimulatedArena.getInstance().getGamePiecesArrayByType("Coral"));
+    Logger.recordOutput(
+        "FieldSimulation/Algae", SimulatedArena.getInstance().getGamePiecesArrayByType("Algae"));
+  }
+
+  public void autonomousInit() {
+    if (Constants.currentMode != Constants.Mode.SIM) return;
+
+    // Reset the simulation to the initial pose
+    driveSimulation.setSimulationWorldPose(drive.getPose());
+    gripper.autonomousInit();
+  }
+
+  
 }

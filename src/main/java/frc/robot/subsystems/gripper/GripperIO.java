@@ -24,4 +24,6 @@ public interface GripperIO {
   public default void setPID(double KP, double KI, double KD) {}
 
   public default void setFF(double KS, double KV, double KA) {}
+
+  public default void autonomousInit() {}
 }
