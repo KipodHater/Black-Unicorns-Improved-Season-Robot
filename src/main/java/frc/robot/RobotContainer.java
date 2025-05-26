@@ -123,11 +123,11 @@ public class RobotContainer {
                   new VisionIOPhotonSim(
                       "camera0",
                       VisionConstants.robotToCamera0,
-                      RobotState.getInstance()::getEstimatedPosition),
+                      driveSimulation::getSimulatedDriveTrainPose),
                   new VisionIOPhotonSim(
                       "camera1",
                       VisionConstants.robotToCamera1,
-                      RobotState.getInstance()::getEstimatedPosition)
+                      driveSimulation::getSimulatedDriveTrainPose)
                 });
         break;
 
@@ -181,8 +181,8 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> -controller.getLeftY(),
-            () -> -controller.getLeftX(),
+            () -> controller.getLeftY(),
+            () -> controller.getLeftX(),
             () -> -controller.getRawAxis(2)));
 
     // Lock to 0° when A button is held
@@ -255,6 +255,7 @@ public class RobotContainer {
   }
 
   public void periodic() {
+    vision.periodic();
     gripper.periodic();
   }
 
