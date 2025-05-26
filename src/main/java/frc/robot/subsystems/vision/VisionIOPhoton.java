@@ -126,13 +126,13 @@ public class VisionIOPhoton implements VisionIO {
     }
   }
 
-    protected void setHighResPipeline(boolean highRes) {
-        if(highRes == isHighRes) return; // No change needed
-        isHighRes = highRes;
-        camera.setPipelineIndex(highRes ? highResPipeline : lowResPipeline);
-    }
+  protected void setHighResPipeline(boolean highRes) {
+    if (highRes == isHighRes) return; // No change needed
+    isHighRes = highRes;
+    camera.setPipelineIndex(highRes ? highResPipeline : lowResPipeline);
+  }
 
-    public String getName(){
-        return name;
-    }
+  public String getName() {
+    return name;
+  }
 }

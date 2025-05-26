@@ -25,7 +25,6 @@ public class VisionIOPhotonSim extends VisionIOPhoton {
       visionSim.addAprilTags(aprilTagLayout);
     }
 
-
     SimCameraProperties cameraProp = new SimCameraProperties();
     // add here camera properties:
     cameraProp.setCalibration(1280, 720, Rotation2d.fromDegrees(75));
@@ -40,14 +39,14 @@ public class VisionIOPhotonSim extends VisionIOPhoton {
     super.updateInputs(inputs);
   }
 
-    public String getName(){
-        return super.getName();
-    }
+  public String getName() {
+    return super.getName();
+  }
 
-    // @Override
-    // protected void setHighResPipeline(boolean highRes) {
-    //     if(highRes == isHighRes) return; // No change needed
-    //     isHighRes = highRes;
-    //     cameraSim.
-    // }
+  // @Override
+  // protected void setHighResPipeline(boolean highRes) {
+  //     if(highRes == isHighRes) return; // No change needed
+  //     isHighRes = highRes;
+  //     cameraSim.
+  // }
 }

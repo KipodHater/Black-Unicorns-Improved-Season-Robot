@@ -20,7 +20,6 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
@@ -87,10 +86,14 @@ public class RobotContainer {
                 (robotPose) -> {});
         gripper = new Gripper(new GripperIOSpark());
         arm = new Arm(new ArmIOSpark());
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {
-                                                new VisionIOPhoton("camera0", VisionConstants.robotToCamera0), 
-                                                new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),
-                                                 new VisionIOLimelight("limelight-tsachi",RobotState.getInstance() :: getYaw)});
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIO[] {
+                  new VisionIOPhoton("camera0", VisionConstants.robotToCamera0),
+                  new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),
+                  new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
+                });
         break;
 
       case SIM:
@@ -113,9 +116,19 @@ public class RobotContainer {
 
         gripper = new Gripper(new GripperIOSim(driveSimulation));
         arm = new Arm(new ArmIOSim());
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {
-                            new VisionIOPhotonSim("camera0", VisionConstants.robotToCamera0, RobotState.getInstance():: getEstimatedPosition),
-                            new VisionIOPhotonSim("camera1", VisionConstants.robotToCamera1, RobotState.getInstance():: getEstimatedPosition)});
+        vision =
+            new Vision(
+                drive::addVisionMeasurement,
+                new VisionIO[] {
+                  new VisionIOPhotonSim(
+                      "camera0",
+                      VisionConstants.robotToCamera0,
+                      RobotState.getInstance()::getEstimatedPosition),
+                  new VisionIOPhotonSim(
+                      "camera1",
+                      VisionConstants.robotToCamera1,
+                      RobotState.getInstance()::getEstimatedPosition)
+                });
         break;
 
       default:
@@ -271,6 +284,4 @@ public class RobotContainer {
     driveSimulation.setSimulationWorldPose(drive.getPose());
     gripper.autonomousInit();
   }
-
-  
 }

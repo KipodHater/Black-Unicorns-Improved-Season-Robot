@@ -1,9 +1,6 @@
 package frc.robot.subsystems.vision;
 
-import java.util.LinkedList;
-import java.util.List;
-
-import org.littletonrobotics.junction.Logger;
+import static frc.robot.subsystems.vision.VisionConstants.*;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -13,8 +10,9 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-
-import static frc.robot.subsystems.vision.VisionConstants.*;
+import java.util.LinkedList;
+import java.util.List;
+import org.littletonrobotics.junction.Logger;
 
 public class Vision {
 
@@ -23,7 +21,7 @@ public class Vision {
   private Alert[] visionAlerts;
   private final VisionConsumer consumer;
 
-  public Vision( VisionConsumer consumer, VisionIO... io) {
+  public Vision(VisionConsumer consumer, VisionIO... io) {
     this.consumer = consumer;
     this.io = io;
     this.inputs = new VisionIOInputsAutoLogged[io.length];
@@ -31,11 +29,14 @@ public class Vision {
       inputs[i] = new VisionIOInputsAutoLogged();
     }
 
-    for(int i=0; i<io.length; i++) visionAlerts[i] = new Alert("Vision camera " + io[i].getName() + "is dissconnected!",  AlertType.kWarning);
+    this.visionAlerts = new Alert[io.length];
+    for (int i = 0; i < io.length; i++)
+      visionAlerts[i] =
+          new Alert("Vision camera " + io[i].getName() + "is dissconnected!", AlertType.kWarning);
   }
 
-  public void periodic(){
-    for(int i=0; i<io.length; i++){
+  public void periodic() {
+    for (int i = 0; i < io.length; i++) {
       io[i].updateInputs(inputs[i]);
       Logger.processInputs("Vision/Camera " + io[i].getName(), inputs[i]);
     }
@@ -92,7 +93,8 @@ public class Vision {
 
         // Calculate standard deviations
         double stdDevFactor =
-            Math.pow(observation.averageTagDistance(), 2.0) / observation.tagCount(); // TODO: change!!!
+            Math.pow(observation.averageTagDistance(), 2.0)
+                / observation.tagCount(); // TODO: change!!!
         double linearStdDev = linearStdDevBaseline * stdDevFactor;
         double angularStdDev = angularStdDevBaseline * stdDevFactor;
         if (cameraIndex < cameraStdDevFactors.length) {
