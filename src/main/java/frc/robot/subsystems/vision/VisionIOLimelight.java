@@ -1,3 +1,5 @@
+package frc.robot.subsystems.vision;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,10 +18,10 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotController;
 
-// public class VisionIOLimelight implements VisionIO{
+public class VisionIOLimelight implements VisionIO{
 
-//     private final Supplier<Rotation2d> rotationSupplier;
-//     private final DoubleArrayPublisher orientationPublisher;
+    private final Supplier<Rotation2d> rotationSupplier;
+    private final DoubleArrayPublisher orientationPublisher;
     private final NetworkTable table;
     private final String name;
     
@@ -34,10 +36,10 @@ import edu.wpi.first.wpilibj.RobotController;
     private boolean isHighRes = true;
     private boolean isSearchingTags = true;
 
-//     public VisionIOLimelight (String name, Supplier<Rotation2d> rotationSupplier){
+    public VisionIOLimelight (String name, Supplier<Rotation2d> rotationSupplier){
 //         // this.name = name;
 
-//         this.rotationSupplier = rotationSupplier;
+        this.rotationSupplier = rotationSupplier;
 
         table = NetworkTableInstance.getDefault().getTable(name);
         this.name = name;
@@ -49,7 +51,7 @@ import edu.wpi.first.wpilibj.RobotController;
         megatag1Subscriber = table.getDoubleArrayTopic("botpose_wpiblue").subscribe(new double[] {});
         megatag2Subscriber = table.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe(new double[] {});
 
-//         orientationPublisher = table.getDoubleArrayTopic("robot_orientation_set").publish();
+        orientationPublisher = table.getDoubleArrayTopic("robot_orientation_set").publish();
         cropStream(-0.7, 0.7, -0.8, 0.8);
         setHighResPipeline(true);
     }
@@ -60,6 +62,8 @@ import edu.wpi.first.wpilibj.RobotController;
 
 //     Set<Integer> tagIds = new HashSet<>();
 //     List<PoseObservation> poseObservations = new LinkedList<>();
+    @Override
+    public void updateInputs(VisionIOInputs inputs) {
         orientationPublisher.accept(new double[]{rotationSupplier.get().getDegrees(), 0.0, 0.0, 0.0, 0.0, 0.0});
         NetworkTableInstance.getDefault().flush();
 
