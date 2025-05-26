@@ -62,4 +62,8 @@ public class Gripper {
   }
 
   public void testPeriodic() {}
+
+  public void autonomousInit() {
+    io.autonomousInit();
+  }
 }

@@ -1,5 +1,3 @@
-package frc.robot.subsystems.vision;
-
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,11 +16,10 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotController;
 
-public class VisionIOLimelight implements VisionIO{
+// public class VisionIOLimelight implements VisionIO{
 
-    private final Supplier<Rotation2d> rotationSupplier;
-    private final DoubleArrayPublisher orientationPublisher;
-
+//     private final Supplier<Rotation2d> rotationSupplier;
+//     private final DoubleArrayPublisher orientationPublisher;
     private final NetworkTable table;
     private final String name;
     
@@ -37,10 +34,10 @@ public class VisionIOLimelight implements VisionIO{
     private boolean isHighRes = true;
     private boolean isSearchingTags = true;
 
-    public VisionIOLimelight (String name, Supplier<Rotation2d> rotationSupplier){
-        // this.name = name;
+//     public VisionIOLimelight (String name, Supplier<Rotation2d> rotationSupplier){
+//         // this.name = name;
 
-        this.rotationSupplier = rotationSupplier;
+//         this.rotationSupplier = rotationSupplier;
 
         table = NetworkTableInstance.getDefault().getTable(name);
         this.name = name;
@@ -52,18 +49,17 @@ public class VisionIOLimelight implements VisionIO{
         megatag1Subscriber = table.getDoubleArrayTopic("botpose_wpiblue").subscribe(new double[] {});
         megatag2Subscriber = table.getDoubleArrayTopic("botpose_orb_wpiblue").subscribe(new double[] {});
 
-        orientationPublisher = table.getDoubleArrayTopic("robot_orientation_set").publish();
-
+//         orientationPublisher = table.getDoubleArrayTopic("robot_orientation_set").publish();
         cropStream(-0.7, 0.7, -0.8, 0.8);
         setHighResPipeline(true);
     }
 
-    public void updateInputs(VisionIOInputs inputs) {
-        inputs.connected = (RobotController.getFPGATime() - latencySubscriber.getLastChange()) < 250;
+//         inputs.latestTargetObservation =
+//             new TargetObservation(Rotation2d.fromDegrees(txSubscriber.get()),
+// Rotation2d.fromDegrees(tySubscriber.get()));
 
-        inputs.latestTargetObservation = 
-            new TargetObservation(Rotation2d.fromDegrees(txSubscriber.get()), Rotation2d.fromDegrees(tySubscriber.get()));
-
+//     Set<Integer> tagIds = new HashSet<>();
+//     List<PoseObservation> poseObservations = new LinkedList<>();
         orientationPublisher.accept(new double[]{rotationSupplier.get().getDegrees(), 0.0, 0.0, 0.0, 0.0, 0.0});
         NetworkTableInstance.getDefault().flush();
 
