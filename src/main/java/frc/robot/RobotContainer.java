@@ -87,13 +87,8 @@ public class RobotContainer {
                 (robotPose) -> {});
         gripper = new Gripper(new GripperIOSpark());
         arm = new Arm(new ArmIOSpark());
-        vision =
-            new Vision(
-                new VisionIO[] {
-                  new VisionIOPhoton("", new Transform3d()),
-                  new VisionIOPhoton("", new Transform3d()),
-                  //   new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
-                });
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {new VisionIOPhoton("", new Transform3d()), new VisionIOPhoton("", new Transform3d()),
+                                                 new VisionIOLimelight("limelight-tsachi",RobotState.getInstance() :: getYaw)});
         break;
 
       case SIM:
@@ -116,14 +111,8 @@ public class RobotContainer {
 
         gripper = new Gripper(new GripperIOSim(driveSimulation));
         arm = new Arm(new ArmIOSim());
-        vision =
-            new Vision(
-                new VisionIO[] {
-                  new VisionIOPhotonSim(
-                      "", new Transform3d(), RobotState.getInstance()::getEstimatedPosition),
-                  new VisionIOPhotonSim(
-                      "", new Transform3d(), RobotState.getInstance()::getEstimatedPosition)
-                });
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {new VisionIOPhotonSim("", new Transform3d(), RobotState.getInstance():: getEstimatedPosition),
+                            new VisionIOPhotonSim("", new Transform3d(), RobotState.getInstance():: getEstimatedPosition)});
         break;
 
       default:
@@ -138,7 +127,7 @@ public class RobotContainer {
                 (robotPose) -> {});
         gripper = new Gripper(new GripperIO() {});
         arm = new Arm(new ArmIO() {});
-        vision = new Vision(new VisionIO[] {});
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
         break;
     }
 
