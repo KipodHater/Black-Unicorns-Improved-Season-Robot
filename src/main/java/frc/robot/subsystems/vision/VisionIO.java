@@ -25,6 +25,8 @@ public interface VisionIO {
 
   public default void updateInputs(VisionIOInputs inputs) {}
 
+  public default String getName() { return null; }
+
   public static record TargetObservation(Rotation2d tx, Rotation2d ty) {}
 
   public static record PoseObservation(

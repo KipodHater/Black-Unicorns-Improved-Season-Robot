@@ -70,7 +70,7 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.BackRight));
         gripper = new Gripper(new GripperIOSpark());
         arm = new Arm(new ArmIOSpark());
-        vision = new Vision(new VisionIO[] {new VisionIOPhoton("", new Transform3d()), new VisionIOPhoton("", new Transform3d()),
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {new VisionIOPhoton("", new Transform3d()), new VisionIOPhoton("", new Transform3d()),
                                                  new VisionIOLimelight("limelight-tsachi",RobotState.getInstance() :: getYaw)});
         break;
 
@@ -86,7 +86,7 @@ public class RobotContainer {
 
         gripper = new Gripper(new GripperIOSim());
         arm = new Arm(new ArmIOSim());
-        vision = new Vision(new VisionIO[] {new VisionIOPhotonSim("", new Transform3d(), RobotState.getInstance():: getEstimatedPosition),
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {new VisionIOPhotonSim("", new Transform3d(), RobotState.getInstance():: getEstimatedPosition),
                             new VisionIOPhotonSim("", new Transform3d(), RobotState.getInstance():: getEstimatedPosition)});
         break;
 
@@ -101,7 +101,7 @@ public class RobotContainer {
                 new ModuleIO() {});
         gripper = new Gripper(new GripperIO() {});
         arm = new Arm(new ArmIO() {});
-        vision = new Vision(new VisionIO[] {});
+        vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
         break;
     }
 

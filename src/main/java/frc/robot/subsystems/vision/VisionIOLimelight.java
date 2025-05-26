@@ -24,7 +24,7 @@ public class VisionIOLimelight implements VisionIO{
     private final DoubleArrayPublisher orientationPublisher;
 
     private final NetworkTable table;
-
+    private final String name;
     
     private final DoubleSubscriber latencySubscriber;
     private final DoubleSubscriber txSubscriber;
@@ -43,6 +43,7 @@ public class VisionIOLimelight implements VisionIO{
         this.rotationSupplier = rotationSupplier;
 
         table = NetworkTableInstance.getDefault().getTable(name);
+        this.name = name;
 
         latencySubscriber = table.getDoubleTopic("tl").subscribe(0.0);
         txSubscriber = table.getDoubleTopic("tx").subscribe(0.0);
@@ -122,6 +123,10 @@ public class VisionIOLimelight implements VisionIO{
     private void cropStream(double minX, double maxX, double minY, double maxY){ // all values are (-1.0, 1.0)
         double[] cropArray = {minX, maxX, minY, maxY};
         table.getEntry("crop").setDoubleArray(cropArray);
+    }
+
+    public String getName(){
+        return name;
     }
 
     private static Pose3d parsePose(double[] rawLLArray) {

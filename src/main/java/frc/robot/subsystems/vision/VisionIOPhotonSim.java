@@ -41,6 +41,10 @@ public class VisionIOPhotonSim extends VisionIOPhoton {
         super.updateInputs(inputs);
     }
 
+    public String getName(){
+        return super.getName();
+    }
+
     // @Override
     // protected void setHighResPipeline(boolean highRes) {
     //     if(highRes == isHighRes) return; // No change needed
