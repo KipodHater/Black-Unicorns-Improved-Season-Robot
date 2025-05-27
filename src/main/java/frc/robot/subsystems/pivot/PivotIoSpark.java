@@ -13,7 +13,6 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import frc.robot.subsystems.arm.ArmConstants;
 import org.littletonrobotics.junction.AutoLogOutput;
 
 public class PivotIoSpark implements PivotIO {
@@ -29,24 +28,24 @@ public class PivotIoSpark implements PivotIO {
 
   private boolean brakeEnabled = true;
 
-  @AutoLogOutput(key = "Arm/Setpoint")
-  private Double armSetpoint;
+  @AutoLogOutput(key = "Pivot/Setpoint")
+  private Double pivotSetpoint;
 
   public PivotIoSpark() throws ClassNotFoundException { // TODO: remove this exception
-    motor = new SparkMax(ArmConstants.MOTOR_ID, MotorType.kBrushless);
+    motor = new SparkMax(MOTOR_ID, MotorType.kBrushless);
 
     config = new SparkMaxConfig();
 
     pivotEncoder = motor.getAbsoluteEncoder();
 
-    config.inverted(false); // TODO: set any config values to constants
+    config.inverted(MOTOR_INVERTED); // TODO: set any config values to constants
 
     config.idleMode(IdleMode.kBrake).smartCurrentLimit(50).voltageCompensation(12.0);
 
     config
         .encoder
-        .positionConversionFactor(1) // TODO: please tune :3
-        .velocityConversionFactor(1) // TODO: please tune :3
+        .positionConversionFactor(POSITION_CONVERSION_FACTOR) // TODO: please tune :3
+        .velocityConversionFactor(VELOCITY_CONVERSION_FACTOR) // TODO: please tune :3
         .uvwMeasurementPeriod(10);
 
     tryUntilOk(
@@ -57,7 +56,7 @@ public class PivotIoSpark implements PivotIO {
                 config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
 
     pivotPIDController =
-        new ProfiledPIDController(1, 1, 1, new Constraints(0, 0)); // TODO: tune this shittt
+        new ProfiledPIDController(GAINS.KP(), GAINS.KI(), GAINS.KD(), new Constraints(PIVOT_MAX_VELOCITY, PIVOT_MAX_ACCELARATION));
 
     throw new ClassNotFoundException("dont use pivot yet you need to tune it first");
   }

@@ -1,7 +1,9 @@
 package frc.robot.subsystems.pivot;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
-import frc.robot.subsystems.arm.ArmConstants;
+
+import static frc.robot.subsystems.pivot.PivotConstants.*;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -17,16 +19,17 @@ public class Pivot {
     DOWN_INTAKE,
     MIDDLE_OUTTAKE,
     UP_INTAKE,
+    UP_OUTTAKE,
     IDLE
   }
 
   @AutoLogOutput(key = "Pivot/Goal")
   private PivotStates goal = PivotStates.IDLE;
 
-  public Pivot(PivotIO io) throws ClassNotFoundException {
+  public Pivot(PivotIO io) {
     this.io = io;
 
-    throw new ClassNotFoundException("dont touch this yet make constants"); // TODO: listen to him
+
   }
 
   public void periodic() {
@@ -39,15 +42,18 @@ public class Pivot {
 
     switch (goal) {
       case DOWN_INTAKE:
-        io.runPosition(0, ffVoltage); // TODO: tune
+        io.runPosition(BOT_ANGLE, ffVoltage); 
         break;
 
       case MIDDLE_OUTTAKE:
-        io.runPosition(0, ffVoltage); // TODO: this
+        io.runPosition(MID_ANGLE, ffVoltage); 
         break;
 
       case UP_INTAKE:
-        io.runPosition(0, ffVoltage); // TODO: shit
+        io.runPosition(TOP_ANGLE, ffVoltage); 
+        break;
+      case UP_OUTTAKE:
+        io.runPosition(TOP_OUTTAKE_ANGLE, ffVoltage); 
         break;
 
       default:
@@ -55,7 +61,7 @@ public class Pivot {
     }
   }
 
-  public void setArmGoal(PivotStates desiredGoal) {
+  public void setPivotGoal(PivotStates desiredGoal) {
     goal = desiredGoal;
   }
 
