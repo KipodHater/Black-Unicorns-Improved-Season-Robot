@@ -27,6 +27,8 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -60,6 +62,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 public class RobotContainer {
   // Subsystems
   private final Drive drive;
+  private final Autonomous autonomous;
   private final Gripper gripper;
   private final Arm arm;
   private final Vision vision;
@@ -70,6 +73,7 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
+  private final SendableChooser<Boolean> humanFeeder;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -94,6 +98,7 @@ public class RobotContainer {
                   new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),
                   new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
                 });
+        autonomous = new Autonomous(drive);
         break;
 
       case SIM:
@@ -129,6 +134,7 @@ public class RobotContainer {
                       VisionConstants.robotToCamera1,
                       driveSimulation::getSimulatedDriveTrainPose)
                 });
+        autonomous = new Autonomous(drive);
         break;
 
       default:
@@ -144,11 +150,18 @@ public class RobotContainer {
         gripper = new Gripper(new GripperIO() {});
         arm = new Arm(new ArmIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
+        autonomous = new Autonomous(drive);
         break;
     }
 
     // Set up auto routines
+    humanFeeder = new SendableChooser<>();
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
+
+    humanFeeder.setDefaultOption("Left", true);
+    humanFeeder.addOption("Right", false);
+    SmartDashboard.putData("human Feeder Side", humanFeeder);
+
 
     // Set up SysId routines
     autoChooser.addOption(
@@ -251,7 +264,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return autoChooser.get();
+    return autonomous.getAuto(humanFeeder.getSelected());
   }
 
   public void periodic() {
