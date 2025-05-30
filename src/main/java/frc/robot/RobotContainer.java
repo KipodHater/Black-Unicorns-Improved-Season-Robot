@@ -98,7 +98,7 @@ public class RobotContainer {
                   new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),
                   new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
                 });
-        autonomous = new Autonomous(drive);
+        autonomous = new Autonomous(drive, gripper, arm);
         break;
 
       case SIM:
@@ -134,7 +134,7 @@ public class RobotContainer {
                       VisionConstants.robotToCamera1,
                       driveSimulation::getSimulatedDriveTrainPose)
                 });
-        autonomous = new Autonomous(drive);
+        autonomous = new Autonomous(drive, gripper, arm);
         break;
 
       default:
@@ -150,7 +150,7 @@ public class RobotContainer {
         gripper = new Gripper(new GripperIO() {});
         arm = new Arm(new ArmIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
-        autonomous = new Autonomous(drive);
+        autonomous = new Autonomous(drive, gripper, arm);
         break;
     }
 
@@ -161,7 +161,6 @@ public class RobotContainer {
     humanFeeder.setDefaultOption("Left", true);
     humanFeeder.addOption("Right", false);
     SmartDashboard.putData("human Feeder Side", humanFeeder);
-
 
     // Set up SysId routines
     autoChooser.addOption(

@@ -24,7 +24,11 @@ import edu.wpi.first.wpilibj2.command.RepeatCommand;
 import edu.wpi.first.wpilibj2.command.SelectCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.arm.Arm;
+import frc.robot.subsystems.arm.Arm.ArmStates;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.gripper.Gripper;
+import frc.robot.subsystems.gripper.Gripper.GripperStates;
 import frc.robot.util.LocalADStarAK;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +39,9 @@ import java.util.function.Supplier;
 
 public class Autonomous {
   private final Drive drive;
+  private final Gripper gripper;
+  private final Arm arm;
+  //   private final Pivot pivot;
 
   private static final double ROBOT_MASS_KG = 74.088;
   private static final double ROBOT_MOI = 6.883;
@@ -43,7 +50,7 @@ public class Autonomous {
   private final PathConstraints constraints;
 
   private enum SelectedLoader {
-    Left(new Pose2d(0.94, 0.87, new Rotation2d(-2.21))),
+    Left(new Pose2d(0.94, 0.89, new Rotation2d(-2.21))),
     Right(new Pose2d(1.05, 7.22, new Rotation2d(2.21))),
     CONTROL(new Pose2d(300.35, 400.18, new Rotation2d(Units.degreesToRadians(0))));
 
@@ -55,8 +62,8 @@ public class Autonomous {
   }
 
   private enum ReefBranch {
-    A(new Pose2d(3.35, 4.18, new Rotation2d(Units.degreesToRadians(0))), false),
-    B(new Pose2d(3.35, 3.85, new Rotation2d(Units.degreesToRadians(0))), false),
+    A(new Pose2d(3.33, 4.19, new Rotation2d(Units.degreesToRadians(0))), false),
+    B(new Pose2d(3.5, 3.9, new Rotation2d(Units.degreesToRadians(0))), false),
     C(new Pose2d(3.77, 3.1, new Rotation2d(Units.degreesToRadians(60))), false),
     D(new Pose2d(4.05, 2.98, new Rotation2d(Units.degreesToRadians(60))), false),
     E(new Pose2d(4.91, 2.97, new Rotation2d(Units.degreesToRadians(120))), false),
@@ -76,9 +83,11 @@ public class Autonomous {
     }
   }
 
-  public Autonomous(Drive drive) {
+  public Autonomous(Drive drive, Gripper gripper, Arm arm) {
 
     this.drive = drive;
+    this.gripper = gripper;
+    this.arm = arm;
 
     PP_CONFIG =
         new RobotConfig(
@@ -158,8 +167,9 @@ public class Autonomous {
     return curClosest != null ? curClosest : SelectedLoader.CONTROL;
   }
 
-  public Command loaderBranchLoop(int times) {
-    List<ReefBranch> fullBranches = new ArrayList<>();
+  public Command loaderBranchLoop(int times, List<ReefBranch> fullBranchesBetter) {
+    List<ReefBranch> fullBranches;
+    fullBranches = fullBranchesBetter;
     Command auto;
 
     AtomicInteger count = new AtomicInteger(0);
@@ -170,11 +180,22 @@ public class Autonomous {
                     Commands.defer(
                         () -> AutoBuilder.pathfindToPose(getClosestLoader().pose, constraints),
                         Set.of(drive)),
+                    Commands.parallel(
+                        Commands.runOnce(() -> arm.setArmGoal(ArmStates.UP_INTAKE)),
+                        Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.INTAKE))
+                            .withTimeout(2)
+                            .andThen(
+                                Commands.runOnce(
+                                    () -> gripper.setGripperGoal(GripperStates.HOLD)))),
                     Commands.defer(
                         () ->
                             AutoBuilder.pathfindToPose(
                                 getClosestBranch(fullBranches).pose, constraints),
                         Set.of(drive)),
+                    Commands.parallel(
+                        Commands.runOnce(() -> arm.setArmGoal(ArmStates.MIDDLE_OUTTAKE)),
+                        Commands.runOnce(
+                            () -> gripper.setGripperGoal(GripperStates.OUTTAKE_STRONG))),
                     Commands.runOnce(() -> count.incrementAndGet())))
             .withDeadline(Commands.waitUntil(() -> count.get() >= times));
 
@@ -192,6 +213,9 @@ public class Autonomous {
             Commands.defer(
                 () -> AutoBuilder.pathfindToPose(getClosestBranch(fullBranches).pose, constraints),
                 Set.of(drive)),
+            Commands.parallel(
+                Commands.runOnce(() -> arm.setArmGoal(ArmStates.MIDDLE_OUTTAKE)),
+                Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.OUTTAKE_STRONG))),
             new SelectCommand<>(
                 Map.of(
                     "L",
@@ -202,7 +226,7 @@ public class Autonomous {
                 ),
             //
 
-            loaderBranchLoop(5),
+            loaderBranchLoop(5, fullBranches),
             Commands.none());
 
     auto = Commands.defer(() -> subAuto, Set.of(drive));
