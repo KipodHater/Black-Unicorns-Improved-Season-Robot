@@ -38,6 +38,7 @@ public class VisionIOLimelight implements VisionIO {
     //         // this.name = name;
 
     this.rotationSupplier = rotationSupplier;
+    isSearchingTags = true;
 
     table = NetworkTableInstance.getDefault().getTable(name);
     this.name = name;
@@ -65,7 +66,7 @@ public class VisionIOLimelight implements VisionIO {
   public void updateInputs(VisionIOInputs inputs) {
     orientationPublisher.accept(
         new double[] {rotationSupplier.get().getDegrees(), 0.0, 0.0, 0.0, 0.0, 0.0});
-    NetworkTableInstance.getDefault().flush();
+    NetworkTableInstance.getDefault(); // .flush()
 
     Set<Integer> tagIds = new HashSet<>();
     List<PoseObservation> poseObservations = new LinkedList<>();
@@ -101,20 +102,21 @@ public class VisionIOLimelight implements VisionIO {
     for (int id : tagIds) {
       inputs.tagIds[i++] = id;
     }
-
     if (validTargetSubscriber.get() == 1) {
       cropStream(
-          txSubscriber.get() - 0.3,
-          txSubscriber.get() + 0.3,
-          tySubscriber.get() - 0.15,
-          tySubscriber.get() + 0.15);
+          txSubscriber.get() - 0.5,
+          txSubscriber.get() + 0.5,
+          tySubscriber.get() - 0.5,
+          tySubscriber.get() + 0.5);
       if (latestDistance != null) {
         if (latestDistance < 3.0) setHighResPipeline(false);
         else if (latestDistance > 3.5) setHighResPipeline(true);
       }
+      isSearchingTags = false;
     } else if (!isSearchingTags) {
       cropStream(-0.7, 0.7, -0.8, 0.8);
       setHighResPipeline(true);
+      isSearchingTags = true;
     }
   }
 
@@ -124,12 +126,14 @@ public class VisionIOLimelight implements VisionIO {
     table
         .getEntry("pipeline")
         .setNumber(highRes ? VisionConstants.highResPipeline : VisionConstants.lowResPipeline);
+    System.out.println("highRes");
   }
 
   private void cropStream(
       double minX, double maxX, double minY, double maxY) { // all values are (-1.0, 1.0)
     double[] cropArray = {minX, maxX, minY, maxY};
     table.getEntry("crop").setDoubleArray(cropArray);
+    System.out.println("got here!!!");
   }
 
   public String getName() {

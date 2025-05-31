@@ -1,5 +1,6 @@
 package frc.robot.subsystems.pivot;
 
+import static frc.robot.subsystems.pivot.PivotConstants.*;
 import static frc.robot.util.SparkUtil.*;
 
 import com.revrobotics.AbsoluteEncoder;
@@ -13,8 +14,6 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import org.littletonrobotics.junction.AutoLogOutput;
-
-import static frc.robot.subsystems.pivot.PivotConstants.*;
 
 public class PivotIOSpark implements PivotIO {
 

@@ -1,9 +1,8 @@
 package frc.robot.subsystems.pivot;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.math.controller.ArmFeedforward;
 
 public class Pivot {
 
@@ -11,7 +10,8 @@ public class Pivot {
   private final PivotIOInputsAutoLogged inputs = new PivotIOInputsAutoLogged();
 
   private final ArmFeedforward feedforwardController =
-      new ArmFeedforward(PivotConstants.GAINS.KS(), PivotConstants.GAINS.KG(), PivotConstants.GAINS.KV());
+      new ArmFeedforward(
+          PivotConstants.GAINS.KS(), PivotConstants.GAINS.KG(), PivotConstants.GAINS.KV());
 
   // @RequiredArgsConstructor
   public enum PivotStates {
