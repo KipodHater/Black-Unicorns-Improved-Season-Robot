@@ -22,8 +22,6 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.generated.TunerConstants;
-import frc.robot.util.PhoenixUtil;
-import java.util.Arrays;
 import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 import org.ironmaple.simulation.motorsims.SimulatedMotorController;
 
@@ -105,13 +103,13 @@ public class ModuleIOSim implements ModuleIO {
     inputs.turnAppliedVolts = turnAppliedVolts;
     inputs.turnCurrentAmps = Math.abs(moduleSimulation.getSteerMotorStatorCurrent().in(Amps));
 
-    // Update odometry inputs (50Hz because high-frequency odometry in sim doesn't matter)
-    inputs.odometryTimestamps = PhoenixUtil.getSimulationOdometryTimeStamps();
-    inputs.odometryDrivePositionsRad =
-        Arrays.stream(moduleSimulation.getCachedDriveWheelFinalPositions())
-            .mapToDouble(angle -> angle.in(Radians))
-            .toArray();
-    inputs.odometryTurnPositions = moduleSimulation.getCachedSteerAbsolutePositions();
+    // // Update odometry inputs (50Hz because high-frequency odometry in sim doesn't matter)
+    // inputs.odometryTimestamps = PhoenixUtil.getSimulationOdometryTimeStamps();
+    // inputs.odometryDrivePositionsRad =
+    //     Arrays.stream(moduleSimulation.getCachedDriveWheelFinalPositions())
+    //         .mapToDouble(angle -> angle.in(Radians))
+    //         .toArray();
+    // inputs.odometryTurnPositions = moduleSimulation.getCachedSteerAbsolutePositions();
   }
 
   @Override

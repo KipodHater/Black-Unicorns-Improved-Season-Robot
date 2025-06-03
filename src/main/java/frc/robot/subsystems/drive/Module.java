@@ -13,6 +13,8 @@
 
 package frc.robot.subsystems.drive;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
@@ -22,7 +24,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
-import org.littletonrobotics.junction.Logger;
 
 public class Module {
   private final ModuleIO io;
@@ -35,7 +36,6 @@ public class Module {
   private final Alert driveDisconnectedAlert;
   private final Alert turnDisconnectedAlert;
   private final Alert turnEncoderDisconnectedAlert;
-  private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
 
   public Module(
       ModuleIO io,
@@ -62,14 +62,14 @@ public class Module {
     io.updateInputs(inputs);
     Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
 
-    // Calculate positions for odometry
-    int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
-    odometryPositions = new SwerveModulePosition[sampleCount];
-    for (int i = 0; i < sampleCount; i++) {
-      double positionMeters = inputs.odometryDrivePositionsRad[i] * constants.WheelRadius;
-      Rotation2d angle = inputs.odometryTurnPositions[i];
-      odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
-    }
+    // // Calculate positions for odometry
+    // int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
+    // odometryPositions = new SwerveModulePosition[sampleCount];
+    // for (int i = 0; i < sampleCount; i++) {
+    //   double positionMeters = inputs.odometryDrivePositionsRad[i] * constants.WheelRadius;
+    //   Rotation2d angle = inputs.odometryTurnPositions[i];
+    //   odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
+    // }
 
     // Update alerts
     driveDisconnectedAlert.set(!inputs.driveConnected);
@@ -125,15 +125,15 @@ public class Module {
     return new SwerveModuleState(getVelocityMetersPerSec(), getAngle());
   }
 
-  /** Returns the module positions received this cycle. */
-  public SwerveModulePosition[] getOdometryPositions() {
-    return odometryPositions;
-  }
+  // /** Returns the module positions received this cycle. */
+  // public SwerveModulePosition[] getOdometryPositions() {
+  //   return odometryPositions;
+  // }
 
-  /** Returns the timestamps of the samples received this cycle. */
-  public double[] getOdometryTimestamps() {
-    return inputs.odometryTimestamps;
-  }
+  // /** Returns the timestamps of the samples received this cycle. */
+  // public double[] getOdometryTimestamps() {
+  //   return inputs.odometryTimestamps;
+  // }
 
   /** Returns the module position in radians. */
   public double getWheelRadiusCharacterizationPosition() {
