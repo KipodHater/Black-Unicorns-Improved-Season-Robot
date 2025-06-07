@@ -45,6 +45,7 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
 import frc.robot.subsystems.gripper.Gripper.GripperStates;
 import frc.robot.subsystems.vision.*;
+import java.util.function.DoubleSupplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
@@ -67,6 +68,10 @@ public class RobotContainer {
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
+
+  private DoubleSupplier m_controllerLeftX;
+  private DoubleSupplier m_controllerLeftY;
+  private DoubleSupplier m_controllerRightX;
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -148,6 +153,10 @@ public class RobotContainer {
         break;
     }
 
+    m_controllerLeftX = controller::getLeftX;
+    m_controllerLeftY = controller::getLeftY;
+    m_controllerRightX = () -> controller.getRawAxis(4);
+
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -181,10 +190,7 @@ public class RobotContainer {
     // Default command, normal field-relative drive
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
-            drive,
-            () -> controller.getLeftY(),
-            () -> controller.getLeftX(),
-            () -> -controller.getRawAxis(2)));
+            drive, m_controllerLeftX, m_controllerLeftY, m_controllerRightX));
 
     // Lock to 0° when A button is held
     controller
