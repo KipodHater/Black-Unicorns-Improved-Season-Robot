@@ -97,8 +97,8 @@ public class RobotContainer {
                 new VisionIO[] {
                   /*
                   new VisionIOPhoton("camera0", VisionConstants.robotToCamera0),
-                  new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),*/
-                  new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
+                  new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),
+                  new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)*/
                 });
         break;
 
@@ -211,6 +211,10 @@ public class RobotContainer {
     controller
         .button(5)
         .onTrue(Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.INTAKE)));
+    controller
+        .button(5)
+        .or(controller.button(6))
+        .onFalse(Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.IDLE)));
 
     // Reset gyro to 0° when B button is pressed
 
