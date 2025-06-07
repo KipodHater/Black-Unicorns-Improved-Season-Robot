@@ -21,6 +21,8 @@ import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
@@ -49,7 +51,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
-import frc.robot.util.LocalADStarAK;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -85,6 +86,13 @@ public class Drive extends SubsystemBase {
               TunerConstants.FrontLeft.SlipCurrent,
               1),
           getModuleTranslations());
+  private static final PathConstraints PP_CONSTRAINTS =
+      new PathConstraints(
+          MetersPerSecond.of(4.3),
+          MetersPerSecondPerSecond.of(7),
+          RadiansPerSecond.of(4),
+          RadiansPerSecondPerSecond.of(6),
+          Volts.of(12));
 
   static final Lock odometryLock = new ReentrantLock();
   private final GyroIO gyroIO;
@@ -143,7 +151,6 @@ public class Drive extends SubsystemBase {
         PP_CONFIG,
         () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
         this);
-    Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
         (activePath) -> {
           Logger.recordOutput(
@@ -373,5 +380,14 @@ public class Drive extends SubsystemBase {
       new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
       new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
     };
+  }
+
+  public Command pathFindToPose(Pose2d pose) {
+    Pathfinding.ensureInitialized();
+    return AutoBuilder.pathfindToPose(pose, PP_CONSTRAINTS);
+  }
+
+  public Command pathFindFollowPath(PathPlannerPath path) {
+    return AutoBuilder.pathfindThenFollowPath(path, PP_CONSTRAINTS);
   }
 }

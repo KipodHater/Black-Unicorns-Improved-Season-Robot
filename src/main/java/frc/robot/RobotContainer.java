@@ -27,7 +27,9 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -45,6 +47,7 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
 import frc.robot.subsystems.gripper.Gripper.GripperStates;
 import frc.robot.subsystems.vision.*;
+import frc.robot.util.ReefUtil.BranchPoses;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
@@ -70,6 +73,7 @@ public class RobotContainer {
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
+  private final LoggedDashboardChooser<BranchPoses> branchChooser;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -146,6 +150,13 @@ public class RobotContainer {
         vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
         break;
     }
+
+    branchChooser =
+        new LoggedDashboardChooser<>("Branch Poses", new SendableChooser<BranchPoses>());
+    for (BranchPoses n : BranchPoses.values()) {
+      branchChooser.addOption(n.name(), n);
+    }
+    branchChooser.addDefaultOption("None", BranchPoses.A); // Default to A branch
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -243,6 +254,12 @@ public class RobotContainer {
     }
     // Human Player
 
+    controller
+        .button(14)
+        .onTrue(
+            drive
+                .pathFindToPose(branchChooser.get().getPose())
+                .withInterruptBehavior(InterruptionBehavior.kCancelSelf));
   }
 
   /**
