@@ -35,7 +35,6 @@ public class Module {
   private final Alert driveDisconnectedAlert;
   private final Alert turnDisconnectedAlert;
   private final Alert turnEncoderDisconnectedAlert;
-  private SwerveModulePosition[] odometryPositions = new SwerveModulePosition[] {};
 
   public Module(
       ModuleIO io,
@@ -62,14 +61,14 @@ public class Module {
     io.updateInputs(inputs);
     Logger.processInputs("Drive/Module" + Integer.toString(index), inputs);
 
-    // Calculate positions for odometry
-    int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
-    odometryPositions = new SwerveModulePosition[sampleCount];
-    for (int i = 0; i < sampleCount; i++) {
-      double positionMeters = inputs.odometryDrivePositionsRad[i] * constants.WheelRadius;
-      Rotation2d angle = inputs.odometryTurnPositions[i];
-      odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
-    }
+    // // Calculate positions for odometry
+    // int sampleCount = inputs.odometryTimestamps.length; // All signals are sampled together
+    // odometryPositions = new SwerveModulePosition[sampleCount];
+    // for (int i = 0; i < sampleCount; i++) {
+    //   double positionMeters = inputs.odometryDrivePositionsRad[i] * constants.WheelRadius;
+    //   Rotation2d angle = inputs.odometryTurnPositions[i];
+    //   odometryPositions[i] = new SwerveModulePosition(positionMeters, angle);
+    // }
 
     // Update alerts
     driveDisconnectedAlert.set(!inputs.driveConnected);
@@ -81,7 +80,7 @@ public class Module {
   public void runSetpoint(SwerveModuleState state) {
     // Optimize velocity setpoint
     state.optimize(getAngle());
-    state.cosineScale(inputs.turnPosition);
+    // state.cosineScale(inputs.turnPosition);
 
     // Apply setpoints
     io.setDriveVelocity(state.speedMetersPerSecond / constants.WheelRadius);
@@ -125,15 +124,15 @@ public class Module {
     return new SwerveModuleState(getVelocityMetersPerSec(), getAngle());
   }
 
-  /** Returns the module positions received this cycle. */
-  public SwerveModulePosition[] getOdometryPositions() {
-    return odometryPositions;
-  }
+  // /** Returns the module positions received this cycle. */
+  // public SwerveModulePosition[] getOdometryPositions() {
+  //   return odometryPositions;
+  // }
 
-  /** Returns the timestamps of the samples received this cycle. */
-  public double[] getOdometryTimestamps() {
-    return inputs.odometryTimestamps;
-  }
+  // /** Returns the timestamps of the samples received this cycle. */
+  // public double[] getOdometryTimestamps() {
+  //   return inputs.odometryTimestamps;
+  // }
 
   /** Returns the module position in radians. */
   public double getWheelRadiusCharacterizationPosition() {
