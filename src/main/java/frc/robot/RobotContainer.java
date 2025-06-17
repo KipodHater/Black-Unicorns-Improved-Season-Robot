@@ -35,6 +35,7 @@ import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.subsystems.drive.Drive.DriveStates;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
@@ -88,7 +89,10 @@ public class RobotContainer {
                 new ModuleIOTalonFX(TunerConstants.FrontRight),
                 new ModuleIOTalonFX(TunerConstants.BackLeft),
                 new ModuleIOTalonFX(TunerConstants.BackRight),
-                (robotPose) -> {});
+                (robotPose) -> {},
+                controller::getLeftX,
+                controller::getLeftY,
+                () -> controller.getRawAxis(4));
         gripper = new Gripper(new GripperIOSpark());
         arm = new Arm(new ArmIOSpark());
         vision =
@@ -118,7 +122,10 @@ public class RobotContainer {
                 new ModuleIOSim(driveSimulation.getModules()[1]),
                 new ModuleIOSim(driveSimulation.getModules()[2]),
                 new ModuleIOSim(driveSimulation.getModules()[3]),
-                (robotPose) -> driveSimulation.getSimulatedDriveTrainPose());
+                (robotPose) -> driveSimulation.getSimulatedDriveTrainPose(),
+                controller::getLeftX,
+                controller::getLeftY,
+                () -> controller.getRawAxis(4));
 
         gripper = new Gripper(new GripperIOSim(driveSimulation));
         arm = new Arm(new ArmIOSim());
@@ -146,7 +153,10 @@ public class RobotContainer {
                 new ModuleIO() {},
                 new ModuleIO() {},
                 new ModuleIO() {},
-                (robotPose) -> {});
+                (robotPose) -> {},
+                controller::getLeftX,
+                controller::getLeftY,
+                () -> controller.getRawAxis(4));
         gripper = new Gripper(new GripperIO() {});
         arm = new Arm(new ArmIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
@@ -188,19 +198,22 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
-    drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
-            drive, m_controllerLeftX, m_controllerLeftY, m_controllerRightX));
+    // drive.setDefaultCommand(
+    //     DriveCommands.joystickDrive(
+    //         drive, m_controllerLeftX, m_controllerLeftY, m_controllerRightX));
 
     // Lock to 0° when A button is held
-    controller
-        .a()
-        .whileTrue(
-            DriveCommands.joystickDriveAtAngle(
-                drive,
-                () -> -controller.getLeftY(),
-                () -> -controller.getLeftX(),
-                () -> new Rotation2d()));
+    // controller
+    //     .a()
+    //     .whileTrue(
+    //         DriveCommands.joystickDriveAtAngle(
+    //             drive,
+    //             () -> -controller.getLeftY(),
+    //             () -> -controller.getLeftX(),
+    //             () -> new Rotation2d()));
+
+    controller.a().onTrue(Commands.runOnce(() -> drive.setDriveState(DriveStates.AUTO_ALIGN)));
+    controller.a().onFalse(Commands.runOnce(() -> drive.setDriveState(DriveStates.FIELD_DRIVE)));
 
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));

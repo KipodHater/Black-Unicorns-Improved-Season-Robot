@@ -34,10 +34,14 @@ public class DriveConstants {
 
   public static final double wheelRadiusMeters = Units.inchesToMeters(1.5);
 
+  public static final double maxSpeedMPS = 5.3;
+
   public static final DCMotor driveGearbox = DCMotor.getFalcon500(1);
   public static final DCMotor turnGearbox = DCMotor.getFalcon500(1);
   public static final double driveMotorReduction = 5.9; // Gear ratio for drive motor
   public static final double turnMotorReduction = 18.75; // Gear ratio for turn motor
+
+  public static final double DEADBAND = 0.1; // Deadband for joystick inputs
 
   public static final DriveTrainSimulationConfig mapleSimConfig =
       DriveTrainSimulationConfig.Default()
