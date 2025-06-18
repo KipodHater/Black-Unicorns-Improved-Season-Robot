@@ -20,6 +20,7 @@ public class DriveConstants {
   public static final double wheelCOF = 1.0;
 
   public static final double maxSpeedMetersPerSec = 5.2;
+  public static final double WHEEL_RADIUS = Units.inchesToMeters(2);
   public static final double odometryFrequency = 100.0; // Hz
   public static final double trackWidth = 0.55;
   public static final double wheelBase = 0.55;

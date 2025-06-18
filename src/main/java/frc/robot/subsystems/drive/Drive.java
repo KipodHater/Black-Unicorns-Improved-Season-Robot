@@ -14,6 +14,7 @@
 package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.*;
+import static frc.robot.subsystems.drive.DriveConstants.*;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.ModuleConfig;
@@ -46,9 +47,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
@@ -65,7 +64,8 @@ public class Drive extends SubsystemBase {
     ROBOT_DRIVE,
     ASSISTED_DRIVE,
     AUTO_ALIGN,
-    ROBOT_ORIENTED_DRIVE
+    AUTONOMOUS,
+    IDLE
   }
 
   @AutoLogOutput(key = "Drive/DriveState")
@@ -104,7 +104,6 @@ public class Drive extends SubsystemBase {
   private final GyroIO gyroIO;
   private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
   private final Module[] modules = new Module[4]; // FL, FR, BL, BR
-  private final SysIdRoutine sysId;
   private final Alert gyroDisconnectedAlert =
       new Alert("Disconnected gyro, using kinematics as fallback.", AlertType.kError);
 
@@ -126,15 +125,15 @@ public class Drive extends SubsystemBase {
 
   private final Consumer<Pose2d> resetSimulationPoseCallBack;
 
-  private final DoubleSupplier xJoystickVelocity, yJoystickVelocity, omegaJoystickVelocity;
+  private final DoubleSupplier xJoystickVelocity, yJoystickVelocity, rJoystickVelocity;
 
   private final ProfiledPIDController xController =
-      new ProfiledPIDController(1, 0, 0, new Constraints(getMaxLinearSpeedMetersPerSec(), 5));
+      new ProfiledPIDController(1.2, 0, 0, new Constraints(getMaxLinearSpeedMetersPerSec(), 5));
 
   private final ProfiledPIDController yController =
-      new ProfiledPIDController(1, 0, 0, new Constraints(getMaxLinearSpeedMetersPerSec(), 5));
+      new ProfiledPIDController(1.2, 0, 0, new Constraints(getMaxLinearSpeedMetersPerSec(), 5));
   private final ProfiledPIDController rotationController =
-      new ProfiledPIDController(1, 0, 0, new Constraints(getMaxAngularSpeedRadPerSec(), 10));
+      new ProfiledPIDController(0.8, 0, 0, new Constraints(getMaxAngularSpeedRadPerSec(), 10));
 
   public Drive(
       GyroIO gyroIO,
@@ -145,7 +144,7 @@ public class Drive extends SubsystemBase {
       Consumer<Pose2d> resetSimulationPoseCallBack,
       DoubleSupplier xJoystickVelocity,
       DoubleSupplier yJoystickVelocity,
-      DoubleSupplier omegaJoystickVelocity) {
+      DoubleSupplier rJoystickVelocity) {
 
     this.gyroIO = gyroIO;
     modules[0] = new Module(flModuleIO, 0, TunerConstants.FrontLeft);
@@ -182,20 +181,9 @@ public class Drive extends SubsystemBase {
           Logger.recordOutput("Odometry/TrajectorySetpoint", targetPose);
         });
 
-    // Configure SysId
-    sysId =
-        new SysIdRoutine(
-            new SysIdRoutine.Config(
-                null,
-                null,
-                null,
-                (state) -> Logger.recordOutput("Drive/SysIdState", state.toString())),
-            new SysIdRoutine.Mechanism(
-                (voltage) -> runCharacterization(voltage.in(Volts)), null, this));
-
     this.xJoystickVelocity = xJoystickVelocity;
     this.yJoystickVelocity = yJoystickVelocity;
-    this.omegaJoystickVelocity = omegaJoystickVelocity;
+    this.rJoystickVelocity = rJoystickVelocity;
   }
 
   @Override
@@ -259,35 +247,42 @@ public class Drive extends SubsystemBase {
     // Update gyro alert
     gyroDisconnectedAlert.set(!gyroInputs.connected && Constants.currentMode != Mode.SIM);
 
-    Translation2d linearVelocity;
-    double omega;
+    stateMachine();
+  }
+
+  public void teleopInit() {
+    driveState = DriveStates.FIELD_DRIVE;
+  }
+
+  public void autonomousInit() {
+    driveState = DriveStates.AUTONOMOUS;
+  }
+
+  private void stateMachine() {
+
     switch (driveState) {
-      case FIELD_DRIVE: // Field-oriented drive
-        linearVelocity =
-            getLinearVelocityFromJoysticks(
-                xJoystickVelocity.getAsDouble(), yJoystickVelocity.getAsDouble());
+      case IDLE:
+        if (xJoystickVelocity.getAsDouble() != 0
+            || yJoystickVelocity.getAsDouble() != 0
+            || rJoystickVelocity.getAsDouble() != 0) {
+          setDriveState(DriveStates.FIELD_DRIVE);
+        } else {
+          stop();
+        }
+        break;
 
-        omega =
-            MathUtil.applyDeadband(omegaJoystickVelocity.getAsDouble(), DriveConstants.DEADBAND);
-        // Square rotation value for more precise control
-        omega = Math.copySign(omega * omega, omega);
-
-        // Convert to field relative speeds & send command
-        ChassisSpeeds speeds =
-            new ChassisSpeeds(
-                linearVelocity.getX() * getMaxLinearSpeedMetersPerSec(),
-                linearVelocity.getY() * getMaxLinearSpeedMetersPerSec(),
-                omega * getMaxAngularSpeedRadPerSec());
-        boolean isFlipped =
-            DriverStation.getAlliance().isPresent()
-                && DriverStation.getAlliance().get() == Alliance.Red;
-        runVelocity(
-            ChassisSpeeds.fromFieldRelativeSpeeds(
-                speeds, isFlipped ? getRotation().plus(new Rotation2d(Math.PI)) : getRotation()));
-
+      case FIELD_DRIVE:
+        fieldCentricJoystickDrive(
+            xJoystickVelocity.getAsDouble(),
+            yJoystickVelocity.getAsDouble(),
+            rJoystickVelocity.getAsDouble());
         break;
 
       case ROBOT_DRIVE: // Robot drives autonomously
+        robotCentricJoystickDrive(
+            xJoystickVelocity.getAsDouble(),
+            yJoystickVelocity.getAsDouble(),
+            rJoystickVelocity.getAsDouble());
         break;
 
       case ASSISTED_DRIVE: // Field drive but with assistance from the robot
@@ -297,26 +292,15 @@ public class Drive extends SubsystemBase {
       case AUTO_ALIGN: // Align the robot with reef
         runVelocity(
             new ChassisSpeeds(
-                xController.calculate(getPose().getX(), 0),
-                yController.calculate(getPose().getY(), 0),
-                rotationController.calculate(getPose().getRotation().getDegrees(), 0)));
+                xController.calculate(getPose().getX(), 3.9),
+                yController.calculate(getPose().getY(), 2.7),
+                rotationController.calculate(getPose().getRotation().getDegrees(), 60)));
         break;
 
-      case ROBOT_ORIENTED_DRIVE: // Robot-oriented drive
-        linearVelocity =
-            getLinearVelocityFromJoysticks(
-                xJoystickVelocity.getAsDouble(), yJoystickVelocity.getAsDouble());
-
-        omega =
-            MathUtil.applyDeadband(omegaJoystickVelocity.getAsDouble(), DriveConstants.DEADBAND);
-        // Square rotation value for more precise control
-        omega = Math.copySign(omega * omega, omega);
-
-        runVelocity(
-            new ChassisSpeeds(
-                linearVelocity.getX() * getMaxLinearSpeedMetersPerSec(),
-                linearVelocity.getY() * getMaxLinearSpeedMetersPerSec(),
-                omega * getMaxAngularSpeedRadPerSec()));
+      case AUTONOMOUS:
+        break;
+      default:
+        System.out.println("Drive subsystem is really broken");
         break;
     }
   }
@@ -326,11 +310,41 @@ public class Drive extends SubsystemBase {
     driveState = state;
   }
 
-  /**
-   * Runs the drive at the desired velocity.
-   *
-   * @param speeds Speeds in meters/sec
-   */
+  private void fieldCentricJoystickDrive(double vx, double vy, double vr) {
+    Translation2d linearVelocity = getLinearVelocityFromJoysticks(vx, vy);
+
+    double omega = MathUtil.applyDeadband(vr, DriveConstants.DEADBAND);
+    // Square rotation value for more precise control
+    omega = Math.copySign(omega * omega, omega);
+
+    // Convert to field relative speeds & send command
+    ChassisSpeeds speeds =
+        new ChassisSpeeds(
+            linearVelocity.getX() * getMaxLinearSpeedMetersPerSec(),
+            linearVelocity.getY() * getMaxLinearSpeedMetersPerSec(),
+            omega * getMaxAngularSpeedRadPerSec());
+    boolean isFlipped =
+        DriverStation.getAlliance().isPresent()
+            && DriverStation.getAlliance().get() == Alliance.Red;
+    runVelocity(
+        ChassisSpeeds.fromFieldRelativeSpeeds(
+            speeds, isFlipped ? getRotation().plus(new Rotation2d(Math.PI)) : getRotation()));
+  }
+
+  private void robotCentricJoystickDrive(double vx, double vy, double vr) {
+    Translation2d linearVelocity = getLinearVelocityFromJoysticks(vx, vy);
+
+    double omega = MathUtil.applyDeadband(vr, DriveConstants.DEADBAND);
+    // Square rotation value for more precise control
+    omega = Math.copySign(omega * omega, omega);
+
+    runVelocity(
+        new ChassisSpeeds(
+            linearVelocity.getX() * getMaxLinearSpeedMetersPerSec(),
+            linearVelocity.getY() * getMaxLinearSpeedMetersPerSec(),
+            omega * getMaxAngularSpeedRadPerSec()));
+  }
+
   public void runVelocity(ChassisSpeeds speeds) {
     // Calculate module setpoints
     ChassisSpeeds discreteSpeeds = ChassisSpeeds.discretize(speeds, 0.02);
@@ -375,18 +389,6 @@ public class Drive extends SubsystemBase {
     stop();
   }
 
-  /** Returns a command to run a quasistatic test in the specified direction. */
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return run(() -> runCharacterization(0.0))
-        .withTimeout(1.0)
-        .andThen(sysId.quasistatic(direction));
-  }
-
-  /** Returns a command to run a dynamic test in the specified direction. */
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return run(() -> runCharacterization(0.0)).withTimeout(1.0).andThen(sysId.dynamic(direction));
-  }
-
   /** Returns the module states (turn angles and drive velocities) for all of the modules. */
   @AutoLogOutput(key = "SwerveStates/Measured")
   private SwerveModuleState[] getModuleStates() {
@@ -419,15 +421,6 @@ public class Drive extends SubsystemBase {
       values[i] = modules[i].getWheelRadiusCharacterizationPosition();
     }
     return values;
-  }
-
-  /** Returns the average velocity of the modules in rotations/sec (Phoenix native units). */
-  public double getFFCharacterizationVelocity() {
-    double output = 0.0;
-    for (int i = 0; i < 4; i++) {
-      output += modules[i].getFFCharacterizationVelocity() / 4.0;
-    }
-    return output;
   }
 
   /** Returns the current odometry pose. */

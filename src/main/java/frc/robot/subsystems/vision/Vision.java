@@ -21,6 +21,9 @@ public class Vision {
   private Alert[] visionAlerts;
   private final VisionConsumer consumer;
 
+  List<Pose3d> allTagPoses, allRobotPoses, allRobotPosesAccepted, allRobotPosesRejected;
+  List<Pose3d> tagPoses, robotPoses, robotPosesAccepted, robotPosesRejected;
+
   public Vision(VisionConsumer consumer, VisionIO... io) {
     this.consumer = consumer;
     this.io = io;
@@ -42,16 +45,16 @@ public class Vision {
     }
 
     // Initialize logging values
-    List<Pose3d> allTagPoses = new LinkedList<>();
-    List<Pose3d> allRobotPoses = new LinkedList<>();
-    List<Pose3d> allRobotPosesAccepted = new LinkedList<>();
-    List<Pose3d> allRobotPosesRejected = new LinkedList<>();
+    allTagPoses = new LinkedList<>();
+    allRobotPoses = new LinkedList<>();
+    allRobotPosesAccepted = new LinkedList<>();
+    allRobotPosesRejected = new LinkedList<>();
 
     // Initialize logging values
-    List<Pose3d> tagPoses = new LinkedList<>();
-    List<Pose3d> robotPoses = new LinkedList<>();
-    List<Pose3d> robotPosesAccepted = new LinkedList<>();
-    List<Pose3d> robotPosesRejected = new LinkedList<>();
+    tagPoses = new LinkedList<>();
+    robotPoses = new LinkedList<>();
+    robotPosesAccepted = new LinkedList<>();
+    robotPosesRejected = new LinkedList<>();
 
     for (int cameraIndex = 0; cameraIndex < io.length; cameraIndex++) {
       visionAlerts[cameraIndex].set(!inputs[cameraIndex].connected);
