@@ -296,13 +296,16 @@ public class Drive extends SubsystemBase {
                 yController.calculate(getPose().getY(), 2.7),
                 rotationController.calculate(getPose().getRotation().getDegrees(), 60)));
         break;
-
-      case AUTONOMOUS:
-        break;
       default:
         System.out.println("Drive subsystem is really broken");
         break;
     }
+  }
+
+  public void autonomousPeriodic(ChassisSpeeds speeds) {
+    // This is called every 20ms during autonomous
+    // You should call this from the auto command
+    runVelocity(speeds);
   }
 
   public void setDriveState(DriveStates state) {
@@ -481,5 +484,15 @@ public class Drive extends SubsystemBase {
     return new Pose2d(new Translation2d(), linearDirection)
         .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d()))
         .getTranslation();
+  }
+
+  public void setState(DriveStates state) {
+    if (state == driveState) return;
+    driveState = state;
+    Logger.recordOutput("Drive/DriveState", driveState.toString());
+  }
+
+  public DriveStates getState() {
+    return driveState;
   }
 }

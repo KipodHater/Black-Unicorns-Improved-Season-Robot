@@ -36,20 +36,13 @@ public class Arm {
             inputs.positionDeg * Math.PI / 180.0, inputs.velocityDegPerSec * Math.PI / 180.0);
 
     switch (goal) {
-      case DOWN_INTAKE:
-        io.runPosition(ArmConstants.BOT_ANGLE, ffVoltage);
-        break;
+      case DOWN_INTAKE -> io.runPosition(ArmConstants.BOT_ANGLE, ffVoltage);
 
-      case MIDDLE_OUTTAKE:
-        io.runPosition(ArmConstants.MID_ANGLE, ffVoltage);
-        break;
+      case MIDDLE_OUTTAKE -> io.runPosition(ArmConstants.MID_ANGLE, ffVoltage);
 
-      case UP_INTAKE:
-        io.runPosition(ArmConstants.TOP_ANGLE, ffVoltage);
-        break;
+      case UP_INTAKE -> io.runPosition(ArmConstants.TOP_ANGLE, ffVoltage);
 
-      default:
-        io.stop();
+      default -> io.stop();
     }
   }
 
