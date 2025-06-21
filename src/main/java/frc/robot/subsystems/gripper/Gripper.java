@@ -31,28 +31,17 @@ public class Gripper {
     Logger.processInputs("Gripper", inputs);
 
     switch (goal) {
-      case IDLE:
-        io.stop();
-        break;
+      case IDLE -> io.stop();
 
-      case OUTTAKE:
-        io.setVoltageOpenLoop(GRIPPER_OUTTAKE_SPEED);
-        break;
+      case OUTTAKE -> io.setVoltageOpenLoop(GRIPPER_OUTTAKE_SPEED);
 
-      case OUTTAKE_STRONG:
-        io.setVoltageOpenLoop(GRIPPER_OUTTAKEFAST_SPEED);
-        break;
+      case OUTTAKE_STRONG -> io.setVoltageOpenLoop(GRIPPER_OUTTAKEFAST_SPEED);
 
-      case INTAKE:
-        io.setVoltageOpenLoop(GRIPPER_INTAKE_SPEED);
-        break;
+      case INTAKE -> io.setVoltageOpenLoop(GRIPPER_INTAKE_SPEED);
 
-      case HOLD:
-        io.setVoltageOpenLoop(0.03);
-        break;
+      case HOLD -> io.setVoltageOpenLoop(0.03);
 
-      default:
-        io.stop();
+      default -> io.stop();
     }
     ;
   }
