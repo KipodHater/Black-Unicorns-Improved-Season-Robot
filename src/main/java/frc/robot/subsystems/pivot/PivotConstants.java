@@ -43,6 +43,8 @@ public class PivotConstants {
   public static final double BOT_ANGLE = 117.5;
   public static final double CLIMB_ANGLE = 117.5;
 
+  public static final double PIVOT_GEAR_RATIO = 1.0; // TODO: change, 1:1 for sim
+  public static final double PIVOT_LENGTH_METERS = 0.2; // meters, change!
   public record Gains(
       double KP, double KI, double KD, double KS, double KV, double KA, double KG) {}
 }

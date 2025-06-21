@@ -55,4 +55,8 @@ public class Gripper {
   public void autonomousInit() {
     io.autonomousInit();
   }
+
+  public boolean hasCoral() {
+    return false;
+  }
 }

@@ -33,6 +33,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.arm.*;
+import frc.robot.subsystems.arm.Arm.ArmStates;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.Drive.DriveStates;
 import frc.robot.subsystems.drive.DriveConstants;
@@ -44,6 +45,11 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
 import frc.robot.subsystems.gripper.Gripper.GripperStates;
+import frc.robot.subsystems.pivot.Pivot;
+import frc.robot.subsystems.pivot.PivotIO;
+import frc.robot.subsystems.pivot.PivotIOSim;
+import frc.robot.subsystems.pivot.PivotIOSpark;
+import frc.robot.subsystems.pivot.Pivot.PivotStates;
 import frc.robot.subsystems.vision.*;
 import java.util.function.DoubleSupplier;
 import org.ironmaple.simulation.SimulatedArena;
@@ -59,19 +65,31 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+
+  public enum RobotStates {
+    IDLE,
+    TRAVEL,
+    INTAKE_CORAL_FLOOR,
+    INTAKE_CORAL_SOURCE,
+    PLACE
+  }
+
+  private RobotStates currentRobotState = RobotStates.IDLE;
+
   // Subsystems
   private final Drive drive;
   private final Gripper gripper;
   private final Arm arm;
   private final Vision vision;
+  private final Pivot pivot;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
   private final CommandXboxController controller = new CommandXboxController(0);
 
-  private DoubleSupplier m_controllerLeftX;
-  private DoubleSupplier m_controllerLeftY;
-  private DoubleSupplier m_controllerRightX;
+  // private DoubleSupplier m_controllerLeftX;
+  // private DoubleSupplier m_controllerLeftY;
+  // private DoubleSupplier m_controllerRightX;
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -94,6 +112,7 @@ public class RobotContainer {
                 () -> controller.getRawAxis(4));
         gripper = new Gripper(new GripperIOSpark());
         arm = new Arm(new ArmIOSpark());
+        pivot = new Pivot(new PivotIOSpark());
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -124,10 +143,11 @@ public class RobotContainer {
                 (robotPose) -> driveSimulation.getSimulatedDriveTrainPose(),
                 controller::getLeftX,
                 controller::getLeftY,
-                () -> controller.getRawAxis(4));
+                () -> controller.getRawAxis(2));
 
         gripper = new Gripper(new GripperIOSim(driveSimulation));
         arm = new Arm(new ArmIOSim());
+        pivot = new Pivot(new PivotIOSim());
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -159,13 +179,14 @@ public class RobotContainer {
                 () -> controller.getRawAxis(4));
         gripper = new Gripper(new GripperIO() {});
         arm = new Arm(new ArmIO() {});
+        pivot = new Pivot(new PivotIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
         break;
     }
 
-    m_controllerLeftX = controller::getLeftX;
-    m_controllerLeftY = controller::getLeftY;
-    m_controllerRightX = () -> controller.getRawAxis(4);
+    // m_controllerLeftX = controller::getLeftX;
+    // m_controllerLeftY = controller::getLeftY;
+    // m_controllerRightX = () -> controller.getRawAxis(4);
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -283,6 +304,40 @@ public class RobotContainer {
     vision.periodic();
     Logger.recordOutput("diffff", (RobotController.getFPGATime() - startTime) * 1e-3);
     gripper.periodic();
+  }
+
+  public void stateMachine(){
+    switch(currentRobotState){
+      case IDLE:
+        // Do nothing
+        break;
+      case TRAVEL:
+        // Travel state logic
+          
+        break;
+      case INTAKE_CORAL_FLOOR:
+        // Logic for intake from the floor
+        gripper.setGripperGoal(GripperStates.INTAKE);
+        arm.setArmGoal(ArmStates.DOWN_INTAKE);
+        pivot.setPivotGoal(PivotStates.DOWN_INTAKE);
+
+        if(gripper.hasCoral()){
+          currentRobotState = RobotStates.PLACE;
+        }
+        break;
+      case INTAKE_CORAL_SOURCE:
+        // Logic for intake from the source
+        gripper.setGripperGoal(GripperStates.INTAKE);
+        arm.setArmGoal(ArmStates.UP_INTAKE);
+        pivot.setPivotGoal(PivotStates.UP_INTAKE);
+
+        if(gripper.hasCoral()){
+          currentRobotState = RobotStates.PLACE;
+        }
+        break;
+
+      case PLACE:
+    }
   }
 
   public void resetSimulation() {
