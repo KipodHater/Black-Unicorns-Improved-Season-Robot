@@ -127,11 +127,9 @@ public class Drive extends SubsystemBase {
 
   private final DoubleSupplier xJoystickVelocity, yJoystickVelocity, rJoystickVelocity;
 
-  private final ProfiledPIDController xController =
+  private final ProfiledPIDController followController =
       new ProfiledPIDController(1.2, 0, 0, new Constraints(getMaxLinearSpeedMetersPerSec(), 5));
 
-  private final ProfiledPIDController yController =
-      new ProfiledPIDController(1.2, 0, 0, new Constraints(getMaxLinearSpeedMetersPerSec(), 5));
   private final ProfiledPIDController rotationController =
       new ProfiledPIDController(0.8, 0, 0, new Constraints(getMaxAngularSpeedRadPerSec(), 10));
 
@@ -290,11 +288,15 @@ public class Drive extends SubsystemBase {
         break;
 
       case AUTO_ALIGN: // Align the robot with reef
+        Twist2d poseDifferential = getPose().log(new Pose2d(3.9, 2.7, Rotation2d.fromDegrees(60)));
+        Translation2d place = new Translation2d(poseDifferential.dx, poseDifferential.dy);
+        double velMag = -followController.calculate(place.getNorm(), 0);
         runVelocity(
             new ChassisSpeeds(
-                xController.calculate(getPose().getX(), 3.9),
-                yController.calculate(getPose().getY(), 2.7),
+                velMag * place.getAngle().getCos(),
+                velMag * place.getAngle().getSin(),
                 rotationController.calculate(getPose().getRotation().getDegrees(), 60)));
+
         break;
       default:
         System.out.println("Drive subsystem is really broken");

@@ -46,12 +46,11 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
 import frc.robot.subsystems.gripper.Gripper.GripperStates;
 import frc.robot.subsystems.pivot.Pivot;
+import frc.robot.subsystems.pivot.Pivot.PivotStates;
 import frc.robot.subsystems.pivot.PivotIO;
 import frc.robot.subsystems.pivot.PivotIOSim;
 import frc.robot.subsystems.pivot.PivotIOSpark;
-import frc.robot.subsystems.pivot.Pivot.PivotStates;
 import frc.robot.subsystems.vision.*;
-import java.util.function.DoubleSupplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.seasonspecific.reefscape2025.ReefscapeCoralOnFly;
@@ -119,8 +118,8 @@ public class RobotContainer {
                 new VisionIO[] {
                   /*
                   new VisionIOPhoton("camera0", VisionConstants.robotToCamera0),
-                  new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),
-                  new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)*/
+                  new VisionIOPhoton("camera1", VisionConstants.robotToCamera1), */
+                  new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
                 });
         break;
 
@@ -306,14 +305,14 @@ public class RobotContainer {
     gripper.periodic();
   }
 
-  public void stateMachine(){
-    switch(currentRobotState){
+  public void stateMachine() {
+    switch (currentRobotState) {
       case IDLE:
         // Do nothing
         break;
       case TRAVEL:
         // Travel state logic
-          
+
         break;
       case INTAKE_CORAL_FLOOR:
         // Logic for intake from the floor
@@ -321,7 +320,7 @@ public class RobotContainer {
         arm.setArmGoal(ArmStates.DOWN_INTAKE);
         pivot.setPivotGoal(PivotStates.DOWN_INTAKE);
 
-        if(gripper.hasCoral()){
+        if (gripper.hasCoral()) {
           currentRobotState = RobotStates.PLACE;
         }
         break;
@@ -331,7 +330,7 @@ public class RobotContainer {
         arm.setArmGoal(ArmStates.UP_INTAKE);
         pivot.setPivotGoal(PivotStates.UP_INTAKE);
 
-        if(gripper.hasCoral()){
+        if (gripper.hasCoral()) {
           currentRobotState = RobotStates.PLACE;
         }
         break;
