@@ -44,12 +44,6 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
-import frc.robot.subsystems.gripper.Gripper.GripperStates;
-import frc.robot.subsystems.pivot.Pivot;
-import frc.robot.subsystems.pivot.Pivot.PivotStates;
-import frc.robot.subsystems.pivot.PivotIO;
-import frc.robot.subsystems.pivot.PivotIOSim;
-import frc.robot.subsystems.pivot.PivotIOSpark;
 import frc.robot.subsystems.vision.*;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -80,7 +74,6 @@ public class RobotContainer {
   private final Gripper gripper;
   private final Arm arm;
   private final Vision vision;
-  private final Pivot pivot;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
@@ -109,9 +102,8 @@ public class RobotContainer {
                 controller::getLeftX,
                 controller::getLeftY,
                 () -> controller.getRawAxis(4));
-        gripper = new Gripper(new GripperIOSpark());
+        gripper = new Gripper(new GripperIOSpark(), new GripperSensorIORev());
         arm = new Arm(new ArmIOSpark());
-        pivot = new Pivot(new PivotIOSpark());
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -144,9 +136,8 @@ public class RobotContainer {
                 controller::getLeftY,
                 () -> controller.getRawAxis(2));
 
-        gripper = new Gripper(new GripperIOSim(driveSimulation));
+        gripper = new Gripper(new GripperIOSim(driveSimulation), new GripperSensorIORev());
         arm = new Arm(new ArmIOSim());
-        pivot = new Pivot(new PivotIOSim());
         vision =
             new Vision(
                 drive::addVisionMeasurement,
@@ -176,9 +167,8 @@ public class RobotContainer {
                 controller::getLeftX,
                 controller::getLeftY,
                 () -> controller.getRawAxis(4));
-        gripper = new Gripper(new GripperIO() {});
+        gripper = new Gripper(new GripperIO() {}, new GripperSensorIO() {});
         arm = new Arm(new ArmIO() {});
-        pivot = new Pivot(new PivotIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
         break;
     }
@@ -238,16 +228,16 @@ public class RobotContainer {
     // Switch to X pattern when X button is pressed
     controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
 
-    controller
-        .button(6)
-        .onTrue(Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.OUTTAKE_STRONG)));
-    controller
-        .button(5)
-        .onTrue(Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.INTAKE)));
-    controller
-        .button(5)
-        .or(controller.button(6))
-        .onFalse(Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.IDLE)));
+    // controller
+    //     .button(6)
+    //     .onTrue(Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.EJECT_CORAL)));
+    // controller
+    //     .button(5)
+    //     .onTrue(Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.INTAKE_Co)));
+    // controller
+    //     .button(5)
+    //     .or(controller.button(6))
+    //     .onFalse(Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.IDLE)));
 
     // Reset gyro to 0° when B button is pressed
 
@@ -316,9 +306,8 @@ public class RobotContainer {
         break;
       case INTAKE_CORAL_FLOOR:
         // Logic for intake from the floor
-        gripper.setGripperGoal(GripperStates.INTAKE);
+        // gripper.setGripperGoal(GripperStates.INTAKE);
         arm.setArmGoal(ArmStates.DOWN_INTAKE);
-        pivot.setPivotGoal(PivotStates.DOWN_INTAKE);
 
         if (gripper.hasCoral()) {
           currentRobotState = RobotStates.PLACE;
@@ -326,9 +315,8 @@ public class RobotContainer {
         break;
       case INTAKE_CORAL_SOURCE:
         // Logic for intake from the source
-        gripper.setGripperGoal(GripperStates.INTAKE);
+        // gripper.setGripperGoal(GripperStates.INTAKE);
         arm.setArmGoal(ArmStates.UP_INTAKE);
-        pivot.setPivotGoal(PivotStates.UP_INTAKE);
 
         if (gripper.hasCoral()) {
           currentRobotState = RobotStates.PLACE;
