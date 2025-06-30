@@ -20,6 +20,8 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
@@ -44,6 +46,9 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
 import frc.robot.subsystems.gripper.Gripper.GripperStates;
+import frc.robot.subsystems.objectVision.ObjectVision;
+import frc.robot.subsystems.objectVision.ObjectVisionIO;
+import frc.robot.subsystems.objectVision.ObjectVisionIOPhoton;
 import frc.robot.subsystems.vision.*;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -63,6 +68,7 @@ public class RobotContainer {
   private final Gripper gripper;
   private final Arm arm;
   private final Vision vision;
+  private final ObjectVision objectVision;
   private SwerveDriveSimulation driveSimulation = null;
 
   // Controller
@@ -90,9 +96,17 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement,
                 new VisionIO[] {
+                  /*
                   new VisionIOPhoton("camera0", VisionConstants.robotToCamera0),
                   new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),
-                  new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
+                  new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)*/
+                });
+        objectVision =
+            new ObjectVision(
+                drive::getPose,
+                new ObjectVisionIO[] {
+                  new ObjectVisionIOPhoton(
+                      "cam", new Transform3d(0.25, 0.4, 0, new Rotation3d(0, -0.5, 0)))
                 });
         break;
 
@@ -129,6 +143,7 @@ public class RobotContainer {
                       VisionConstants.robotToCamera1,
                       driveSimulation::getSimulatedDriveTrainPose)
                 });
+        objectVision = new ObjectVision(drive::getPose, new ObjectVisionIO[] {});
         break;
 
       default:
@@ -144,6 +159,7 @@ public class RobotContainer {
         gripper = new Gripper(new GripperIO() {});
         arm = new Arm(new ArmIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
+        objectVision = new ObjectVision(drive::getPose, new ObjectVisionIO[] {});
         break;
     }
 
@@ -255,8 +271,9 @@ public class RobotContainer {
   }
 
   public void periodic() {
-    vision.periodic();
-    gripper.periodic();
+    // vision.periodic();
+    // gripper.periodic();
+    objectVision.periodic();
   }
 
   public void resetSimulation() {

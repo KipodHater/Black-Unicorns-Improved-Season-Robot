@@ -3,7 +3,7 @@ package frc.robot.subsystems.objectVision;
 import edu.wpi.first.math.geometry.Transform3d;
 import org.photonvision.PhotonCamera;
 
-public class ObjectVisionIOPhoton {
+public class ObjectVisionIOPhoton implements ObjectVisionIO {
 
   private final String name;
   private final PhotonCamera camera;

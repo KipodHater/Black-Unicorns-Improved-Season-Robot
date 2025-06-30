@@ -9,7 +9,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Alert;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class ObjectVision {
@@ -18,10 +18,10 @@ public class ObjectVision {
 
   private final ObjectVisionIO[] io;
   private final ObjectVisionIOInputsAutoLogged[] inputs;
-  private final Function<Double, Pose2d> poseFunction;
+  private final Supplier<Pose2d> poseFunction;
   private final Alert[] alerts;
 
-  public ObjectVision(Function<Double, Pose2d> poseFunction, ObjectVisionIO... io) {
+  public ObjectVision(Supplier<Pose2d> poseFunction, ObjectVisionIO... io) {
 
     this.io = io;
     this.inputs = new ObjectVisionIOInputsAutoLogged[io.length];
@@ -44,9 +44,9 @@ public class ObjectVision {
       alerts[i].set(!inputs[i].connected);
     }
 
-    List<Translation2d> targetTranslations = new LinkedList<>();
+    List<Pose2d> targetTranslations = new LinkedList<>();
     for (int i = 0; i < io.length; i++) {
-      Pose2d fieldToRobot = poseFunction.apply(inputs[i].timestamp);
+      Pose2d fieldToRobot = poseFunction.get(); // .apply(inputs[i].timestamp);
       Transform3d robotToCamera = robotToCameras[i];
       Rotation2d cameraPitch = new Rotation2d(robotToCameras[i].getRotation().getX());
       Rotation2d cameraYaw = new Rotation2d(robotToCameras[i].getRotation().getZ());
@@ -67,8 +67,10 @@ public class ObjectVision {
                 fieldToRobot.getY() + distance * yaw.getSin());
 
         Translation2d targetTranslation = fieldToRobot.getTranslation().plus(robotToTarget);
+
+        Pose2d targetPose = new Pose2d(targetTranslation, new Rotation2d());
         // TODO: add here clamping target values into field
-        targetTranslations.add(targetTranslation);
+        targetTranslations.add(targetPose);
       }
     }
 
