@@ -104,10 +104,8 @@ public class RobotContainer {
         objectVision =
             new ObjectVision(
                 drive::getPose,
-                new ObjectVisionIO[] {
-                  new ObjectVisionIOPhoton(
-                      "cam", new Transform3d(0.25, 0.4, 0, new Rotation3d(0, -0.5, 0)))
-                });
+                new ObjectVisionIOPhoton(
+                    "cam", new Transform3d(0.25, 0.4, 0, new Rotation3d(0, -0.5, 0))));
         break;
 
       case SIM:
@@ -143,7 +141,7 @@ public class RobotContainer {
                       VisionConstants.robotToCamera1,
                       driveSimulation::getSimulatedDriveTrainPose)
                 });
-        objectVision = new ObjectVision(drive::getPose, new ObjectVisionIO[] {});
+        objectVision = new ObjectVision(drive::getPose, new ObjectVisionIO() {});
         break;
 
       default:
@@ -159,7 +157,7 @@ public class RobotContainer {
         gripper = new Gripper(new GripperIO() {});
         arm = new Arm(new ArmIO() {});
         vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
-        objectVision = new ObjectVision(drive::getPose, new ObjectVisionIO[] {});
+        objectVision = new ObjectVision(drive::getPose, new ObjectVisionIO() {});
         break;
     }
 

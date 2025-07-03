@@ -16,70 +16,72 @@ public class ObjectVision {
 
   // private final ObjectVisionConsumer consumer;
 
-  private final ObjectVisionIO[] io;
-  private final ObjectVisionIOInputsAutoLogged[] inputs;
+  private final ObjectVisionIO io;
+  private final ObjectVisionIOInputsAutoLogged inputs;
   private final Supplier<Pose2d> poseFunction;
-  private final Alert[] alerts;
+  private final Alert alerts;
 
-  public ObjectVision(Supplier<Pose2d> poseFunction, ObjectVisionIO... io) {
+  public ObjectVision(Supplier<Pose2d> poseFunction, ObjectVisionIO io) {
 
     this.io = io;
-    this.inputs = new ObjectVisionIOInputsAutoLogged[io.length];
-    for (int i = 0; i < io.length; i++) inputs[i] = new ObjectVisionIOInputsAutoLogged();
+    this.inputs = new ObjectVisionIOInputsAutoLogged();
+    // inputs = new ObjectVisionIOInputsAutoLogged();
 
     this.poseFunction = poseFunction;
-    this.alerts = new Alert[io.length];
 
-    for (int i = 0; i < io.length; i++)
-      alerts[i] =
-          new Alert(
-              "Object detection camera: " + io[i].getName() + " is disconnected.",
-              Alert.AlertType.kWarning);
+    alerts =
+        new Alert(
+            "Object detection camera: " + io.getName() + " is disconnected.",
+            Alert.AlertType.kWarning);
   }
 
   public void periodic() {
-    for (int i = 0; i < io.length; i++) {
-      io[i].updateInputs(inputs[i]);
-      Logger.processInputs("ObjectVision/Camera " + io[i].getName(), inputs[i]);
-      alerts[i].set(!inputs[i].connected);
-    }
+    io.updateInputs(inputs);
+    Logger.processInputs("ObjectVision/Camera " + io.getName(), inputs);
+    alerts.set(!inputs.connected);
 
     List<Pose2d> targetTranslations = new LinkedList<>();
-    for (int i = 0; i < io.length; i++) {
-      Pose2d fieldToRobot = poseFunction.get(); // .apply(inputs[i].timestamp);
-      Transform3d robotToCamera = robotToCameras[i];
-      Rotation2d cameraPitch = new Rotation2d(robotToCameras[i].getRotation().getX());
-      Rotation2d cameraYaw = new Rotation2d(robotToCameras[i].getRotation().getZ());
+    // Logger.recordOutput("ObjectVision/TargetLength", io.length);
+    // for (int i = 0; i < io.length; i++) {
+    Pose2d fieldToRobot = poseFunction.get(); // .apply(inputs[i].timestamp);
+    Transform3d robotToCamera = robotToCameras[0];
+    Rotation2d cameraPitch = new Rotation2d(robotToCameras[0].getRotation().getX());
+    Rotation2d cameraYaw = new Rotation2d(robotToCameras[0].getRotation().getZ());
+    Logger.recordOutput("ObjectVision/TargetLength", inputs.targets.length);
+    for (var target : inputs.targets) {
 
-      for (var target : inputs[i].targets) {
+      Rotation2d yaw =
+          fieldToRobot
+              .getRotation()
+              .plus(projectToGround(cameraPitch, Rotation2d.fromDegrees(target.tx())))
+              .plus(cameraYaw);
+      double distance =
+          robotToCamera.getZ() * (cameraPitch.plus(Rotation2d.fromDegrees(target.ty()))).getCos();
 
-        Rotation2d yaw =
-            fieldToRobot
-                .getRotation()
-                .plus(projectToGround(cameraPitch, new Rotation2d(target.tx())))
-                .plus(cameraYaw);
-        double distance =
-            robotToCamera.getY() * (cameraPitch.plus(new Rotation2d(target.ty()))).getCos();
+      Translation2d fieldToTarget =
+          new Translation2d(
+              fieldToRobot.getX() + distance * yaw.getCos(),
+              fieldToRobot.getY() + distance * yaw.getSin());
 
-        Translation2d robotToTarget =
-            new Translation2d(
-                fieldToRobot.getX() + distance * yaw.getCos(),
-                fieldToRobot.getY() + distance * yaw.getSin());
+      // Translation2d targetTranslation = fieldToRobot.getTranslation().plus(robotToTarget);
 
-        Translation2d targetTranslation = fieldToRobot.getTranslation().plus(robotToTarget);
-
-        Pose2d targetPose = new Pose2d(targetTranslation, new Rotation2d());
-        // TODO: add here clamping target values into field
-        targetTranslations.add(targetPose);
-      }
+      Pose2d targetPose = new Pose2d(fieldToTarget, new Rotation2d());
+      // TODO: add here clamping target values into field
+      Logger.recordOutput("ObjectVision/TargetLength", 1);
+      targetTranslations.add(targetPose);
     }
 
-    Logger.recordOutput(
-        "ObjectVision/TargetTranslations",
-        targetTranslations.toArray(new Translation2d[targetTranslations.size()]));
+    Pose2d[] arrayResults = new Pose2d[targetTranslations.size()];
+    int i = 0;
+    for (var targetPose : targetTranslations) {
+      arrayResults[i++] = targetPose;
+    }
+    // Logger.recordOutput("ObjectVision/TargetLength", arrayResults.length);
+    Logger.recordOutput("ObjectVision/TargetPoses", arrayResults);
   }
 
   private Rotation2d projectToGround(Rotation2d cameraPitch, Rotation2d tx) {
+    if (Math.abs(tx.getRadians()) < 1e-6) return new Rotation2d();
     return new Rotation2d(Math.atan(1.0 * cameraPitch.getTan() / tx.getCos()));
   }
 
@@ -89,5 +91,4 @@ public class ObjectVision {
   //         Transform2d robotToTarget,
   //         double timestampSeconds);
   // }
-
 }
