@@ -105,7 +105,7 @@ public class RobotContainer {
             new ObjectVision(
                 drive::getPose,
                 new ObjectVisionIOPhoton(
-                    "cam", new Transform3d(0.25, 0.4, 0, new Rotation3d(0, -0.5, 0))));
+                    "cam", new Transform3d(0.25, 0, 0.5, new Rotation3d(0, -0.5, 0))));
         break;
 
       case SIM:

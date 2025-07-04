@@ -48,6 +48,7 @@ public class ObjectVision {
     Rotation2d cameraPitch = new Rotation2d(robotToCameras[0].getRotation().getX());
     Rotation2d cameraYaw = new Rotation2d(robotToCameras[0].getRotation().getZ());
     Logger.recordOutput("ObjectVision/TargetLength", inputs.targets.length);
+
     for (var target : inputs.targets) {
 
       Rotation2d yaw =
@@ -56,8 +57,9 @@ public class ObjectVision {
               .plus(projectToGround(cameraPitch, Rotation2d.fromDegrees(target.tx())))
               .plus(cameraYaw);
       double distance =
-          robotToCamera.getZ() * (cameraPitch.plus(Rotation2d.fromDegrees(target.ty()))).getCos();
+          robotToCamera.getZ() * (cameraPitch.plus(Rotation2d.fromDegrees(target.ty()))).getTan();
 
+      Logger.recordOutput("ObjectVision/Distance", distance);
       Translation2d fieldToTarget =
           new Translation2d(
               fieldToRobot.getX() + distance * yaw.getCos(),
@@ -81,7 +83,7 @@ public class ObjectVision {
   }
 
   private Rotation2d projectToGround(Rotation2d cameraPitch, Rotation2d tx) {
-    if (Math.abs(tx.getRadians()) < 1e-6) return new Rotation2d();
+    if (Math.abs(tx.getDegrees()) < (1e-6)) return new Rotation2d();
     return new Rotation2d(Math.atan(1.0 * cameraPitch.getTan() / tx.getCos()));
   }
 
