@@ -20,8 +20,6 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
@@ -48,7 +46,6 @@ import frc.robot.subsystems.gripper.*;
 import frc.robot.subsystems.gripper.Gripper.GripperStates;
 import frc.robot.subsystems.objectVision.ObjectVision;
 import frc.robot.subsystems.objectVision.ObjectVisionIO;
-import frc.robot.subsystems.objectVision.ObjectVisionIOPhoton;
 import frc.robot.subsystems.vision.*;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -104,8 +101,9 @@ public class RobotContainer {
         objectVision =
             new ObjectVision(
                 drive::getPose,
-                new ObjectVisionIOPhoton(
-                    "cam", new Transform3d(0.25, 0, 0.5, new Rotation3d(0, -0.5, 0))));
+                // new ObjectVisionIOPhoton(
+                //     "cam", new Transform3d(0.25, 0, 0.5, new Rotation3d(0, -0.5, 0))));
+                new ObjectVisionIO() {});
         break;
 
       case SIM:
@@ -271,7 +269,7 @@ public class RobotContainer {
   public void periodic() {
     // vision.periodic();
     // gripper.periodic();
-    objectVision.periodic();
+    // objectVision.periodic();
   }
 
   public void resetSimulation() {
