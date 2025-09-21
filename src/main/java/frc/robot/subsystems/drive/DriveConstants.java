@@ -43,6 +43,7 @@ public class DriveConstants {
   public static final double turnMotorReduction = 18.75; // Gear ratio for turn motor
 
   public static final double DEADBAND = 0.1; // Deadband for joystick inputs
+  public static final double ASSISTED_DRIVE_PERCENTAGE = 0.2;
 
   public static final DriveTrainSimulationConfig mapleSimConfig =
       DriveTrainSimulationConfig.Default()
@@ -60,4 +61,5 @@ public class DriveConstants {
                   Meters.of(wheelRadiusMeters),
                   KilogramSquareMeters.of(0.02),
                   wheelCOF));
+                  
 }
