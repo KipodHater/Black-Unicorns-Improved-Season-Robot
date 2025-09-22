@@ -1,10 +1,12 @@
 package frc.robot.subsystems.pivot;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
-public class Pivot {
+public class Pivot extends SubsystemBase {
 
   private final PivotIO io;
   private final PivotIOInputsAutoLogged inputs = new PivotIOInputsAutoLogged();

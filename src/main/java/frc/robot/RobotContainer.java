@@ -60,9 +60,10 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class RobotContainer {
   // Subsystems
+  private final Arm arm;
   private final Drive drive;
   private final Gripper gripper;
-  private final Arm arm;
+  private final Pivot pivot;
   private final Vision vision;
   private SwerveDriveSimulation driveSimulation = null;
 
@@ -80,7 +81,7 @@ public class RobotContainer {
   public RobotContainer() {
     switch (Constants.currentMode) {
       case REAL:
-        // Real robot, instantiate hardware IO implementations
+        arm = new Arm(new ArmIOSpark());
         drive =
             new Drive(
                 new GyroIONavX(),
@@ -93,10 +94,10 @@ public class RobotContainer {
                 controller::getLeftY,
                 () -> controller.getRawAxis(4));
         gripper = new Gripper(new GripperIOSpark());
-        arm = new Arm(new ArmIOSpark());
+        pivot = new Pivot(new PivotIOSpark());
         vision =
             new Vision(
-                drive::addVisionMeasurement,
+                RobotState.getInstance()::addVisionObservation,
                 new VisionIO[] {
                   /*
                   new VisionIOPhoton("camera0", VisionConstants.robotToCamera0),
@@ -106,14 +107,13 @@ public class RobotContainer {
         break;
 
       case SIM:
-        // Sim robot, instantiate physics sim IO implementations
-
         driveSimulation =
             new SwerveDriveSimulation(
                 DriveConstants.mapleSimConfig, new Pose2d(3, 3, new Rotation2d()));
 
         SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
-
+        
+        arm = new Arm(new ArmIOSim());
         drive =
             new Drive(
                 new GyroIOSim(driveSimulation.getGyroSimulation()),
@@ -125,12 +125,11 @@ public class RobotContainer {
                 controller::getLeftX,
                 controller::getLeftY,
                 () -> controller.getRawAxis(4));
-
         gripper = new Gripper(new GripperIOSim(driveSimulation));
-        arm = new Arm(new ArmIOSim());
+        pivot = new Pivot(new PivotIOSim());
         vision =
             new Vision(
-                drive::addVisionMeasurement,
+                RobotState.getInstance()::addVisionObservation,
                 new VisionIO[] {
                   new VisionIOPhotonSim(
                       "camera0",
@@ -146,6 +145,7 @@ public class RobotContainer {
 
       default:
         // Replayed robot, disable IO implementations
+        arm = new Arm(new ArmIO() {});
         drive =
             new Drive(
                 new GyroIO() {},
@@ -158,8 +158,8 @@ public class RobotContainer {
                 controller::getLeftY,
                 () -> controller.getRawAxis(4));
         gripper = new Gripper(new GripperIO() {});
-        arm = new Arm(new ArmIO() {});
-        vision = new Vision(drive::addVisionMeasurement, new VisionIO[] {});
+        pivot = new Pivot(new PivotIO() {});
+        vision = new Vision(RobotState.getInstance()::addVisionObservation, new VisionIO[] {});
         break;
     }
 
@@ -170,47 +170,10 @@ public class RobotContainer {
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
-    // // Set up SysId routines
-    // autoChooser.addOption(
-    //     "Drive Wheel Radius Characterization", DriveCommands.wheelRadiusCharacterization(drive));
-    // autoChooser.addOption(
-    //     "Drive Simple FF Characterization", DriveCommands.feedforwardCharacterization(drive));
-    // autoChooser.addOption(
-    //     "Drive SysId (Quasistatic Forward)",
-    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kForward));
-    // autoChooser.addOption(
-    //     "Drive SysId (Quasistatic Reverse)",
-    //     drive.sysIdQuasistatic(SysIdRoutine.Direction.kReverse));
-    // autoChooser.addOption(
-    //     "Drive SysId (Dynamic Forward)", drive.sysIdDynamic(SysIdRoutine.Direction.kForward));
-    // autoChooser.addOption(
-    //     "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
-
-    // Configure the button bindings
     configureButtonBindings();
   }
 
-  /**
-   * Use this method to define your button->command mappings. Buttons can be created by
-   * instantiating a {@link GenericHID} or one of its subclasses ({@link
-   * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
-   * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
-   */
   private void configureButtonBindings() {
-    // Default command, normal field-relative drive
-    // drive.setDefaultCommand(
-    //     DriveCommands.joystickDrive(
-    //         drive, m_controllerLeftX, m_controllerLeftY, m_controllerRightX));
-
-    // Lock to 0° when A button is held
-    // controller
-    //     .a()
-    //     .whileTrue(
-    //         DriveCommands.joystickDriveAtAngle(
-    //             drive,
-    //             () -> -controller.getLeftY(),
-    //             () -> -controller.getLeftX(),
-    //             () -> new Rotation2d()));
 
     controller.a().onTrue(Commands.runOnce(() -> drive.setDriveState(DriveStates.AUTO_ALIGN)));
     controller.a().onFalse(Commands.runOnce(() -> drive.setDriveState(DriveStates.FIELD_DRIVE)));
@@ -233,62 +196,24 @@ public class RobotContainer {
 
     final Runnable resetGyro =
         Constants.currentMode == Constants.Mode.SIM
-            ? () -> drive.setPose(driveSimulation.getSimulatedDriveTrainPose())
-            : () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d()));
+            ? () -> RobotState.getInstance().resetPose(driveSimulation.getSimulatedDriveTrainPose())
+            : () -> RobotState.getInstance().resetPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d()));
 
     controller.b().onTrue(Commands.runOnce(resetGyro, drive).ignoringDisable(true));
-
-    // Simulation Buttons
-    if (Constants.currentMode == Constants.Mode.SIM) {
-      // L1 Placement
-      controller
-          .b()
-          .onTrue(
-              Commands.runOnce(
-                  () ->
-                      SimulatedArena.getInstance()
-                          .addGamePieceProjectile(
-                              new ReefscapeCoralOnFly(
-                                  // Obtain robot position from drive simulation
-                                  new Translation2d(1, 1),
-                                  // The scoring mechanism is installed at (0.46, 0) (meters) on the
-                                  // robot
-                                  new Translation2d(0, 0),
-                                  // Obtain robot speed from drive simulation
-                                  new ChassisSpeeds(),
-                                  // Obtain robot facing from drive simulation
-                                  new Rotation2d(58),
-                                  // The height at which the coral is ejected
-                                  Distance.ofRelativeUnits(2, Meter),
-                                  // The initial speed ofzz the coral
-                                  LinearVelocity.ofRelativeUnits(1.5, MetersPerSecond),
-                                  // The coral is ejected at a 35-degree slope
-                                  Angle.ofRelativeUnits(-45, Degree)))));
-    }
-    // Human Player
-
   }
 
-  /**
-   * Use this to pass the autonomous command to the main {@link Robot} class.
-   *
-   * @return the command to run in autonomous
-   */
   public Command getAutonomousCommand() {
     return autoChooser.get();
   }
 
   public void periodic() {
     long startTime = RobotController.getFPGATime(); // Get the start time in microseconds
-    vision.periodic();
-    Logger.recordOutput("diffff", (RobotController.getFPGATime() - startTime) * 1e-3);
-    gripper.periodic();
   }
 
   public void resetSimulation() {
     if (Constants.currentMode != Constants.Mode.SIM) return;
 
-    drive.setPose(new Pose2d(3, 3, new Rotation2d()));
+    RobotState.getInstance().resetPose(new Pose2d(3, 3, new Rotation2d()));
     SimulatedArena.getInstance().resetFieldForAuto();
   }
 

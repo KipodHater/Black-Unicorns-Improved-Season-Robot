@@ -21,7 +21,7 @@ public class SuperStructure extends SubsystemBase {
     TRAVEL,
     INTAKE_CORAL_FLOOR,
     ALIGN_L1,
-    PLACE_L1,
+    PLACE_L1, // can possibly add modes for scoring different coral heights
     CLIMB
   }
 
@@ -73,12 +73,33 @@ public class SuperStructure extends SubsystemBase {
         if(previousState != SuperStructureStates.TRAVEL) {
           if(currentCommand != null) currentCommand.cancel();
           currentCommand = null;
-          arm.setArmGoal(Arm.ArmStates.MIDDLE_OUTTAKE);
-          pivot.setPivotGoal(Pivot.PivotStates.MIDDLE_OUTTAKE);
-          gripper.setGripperGoal(Gripper.GripperStates.HOLD);
-          drive.setState(DriveStates.FIELD_DRIVE);
         }
+        arm.setArmGoal(Arm.ArmStates.MIDDLE_OUTTAKE);
+        pivot.setPivotGoal(Pivot.PivotStates.MIDDLE_OUTTAKE);
+        gripper.setGripperGoal(Gripper.GripperStates.HOLD);
+        drive.setState(DriveStates.FIELD_DRIVE);
+      }
+      case INTAKE_CORAL_FLOOR -> {
+        arm.setArmGoal(Arm.ArmStates.DOWN_INTAKE);
+        pivot.setPivotGoal(Pivot.PivotStates.DOWN_INTAKE);
+        gripper.setGripperGoal(Gripper.GripperStates.INTAKE);
+        drive.setState(DriveStates.FIELD_DRIVE); // can possibly add assisted drive
+      }
+      case ALIGN_L1 -> {
+        
       }
     }
+  }
+
+  public void setWantedState(SuperStructureStates wantedState) {
+    this.wantedState = wantedState;
+  }
+
+  public Command setWantedStateCommand(SuperStructureStates wantedState) {
+    return runOnce(() -> setWantedState(wantedState));
+  }
+
+  public SuperStructureStates getCurrentState() {
+    return currentState;
   }
 }
