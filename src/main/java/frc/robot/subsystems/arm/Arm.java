@@ -16,10 +16,20 @@ public class Arm extends SubsystemBase {
 
   // @RequiredArgsConstructor
   public enum ArmStates {
-    DOWN_INTAKE,
-    MIDDLE_OUTTAKE,
-    UP_INTAKE,
-    IDLE
+    DOWN_INTAKE(ArmConstants.BOT_ANGLE),
+    MIDDLE_OUTTAKE(ArmConstants.MID_ANGLE),
+    UP_INTAKE(ArmConstants.TOP_ANGLE),
+    IDLE(null);
+
+    Double value;
+
+    ArmStates(Double value) {
+      this.value = value;
+    }
+
+    public Double position() {
+      return this.value;
+    }
   }
 
   @AutoLogOutput(key = "Arm/Goal")
@@ -38,11 +48,11 @@ public class Arm extends SubsystemBase {
             inputs.positionDeg * Math.PI / 180.0, inputs.velocityDegPerSec * Math.PI / 180.0);
 
     switch (goal) {
-      case DOWN_INTAKE -> io.runPosition(ArmConstants.BOT_ANGLE, ffVoltage);
+      case DOWN_INTAKE -> io.runPosition(ArmStates.DOWN_INTAKE.position(), ffVoltage);
 
-      case MIDDLE_OUTTAKE -> io.runPosition(ArmConstants.MID_ANGLE, ffVoltage);
+      case MIDDLE_OUTTAKE -> io.runPosition(ArmStates.MIDDLE_OUTTAKE.position(), ffVoltage);
 
-      case UP_INTAKE -> io.runPosition(ArmConstants.TOP_ANGLE, ffVoltage);
+      case UP_INTAKE -> io.runPosition(ArmStates.UP_INTAKE.position(), ffVoltage);
 
       default -> io.stop();
     }
@@ -50,6 +60,10 @@ public class Arm extends SubsystemBase {
 
   public void setArmGoal(ArmStates desiredGoal) {
     goal = desiredGoal;
+  }
+
+  public boolean atGoal() {
+    return Math.abs(inputs.positionDeg - goal.position()) < ArmConstants.ARM_POSITION_TOLERANCE_DEG;
   }
 
   public void testPeriodic() {}

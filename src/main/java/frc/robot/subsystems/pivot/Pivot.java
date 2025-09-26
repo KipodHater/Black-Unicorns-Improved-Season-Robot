@@ -17,10 +17,20 @@ public class Pivot extends SubsystemBase {
 
   // @RequiredArgsConstructor
   public enum PivotStates {
-    DOWN_INTAKE,
-    MIDDLE_OUTTAKE,
-    UP_INTAKE,
-    IDLE
+    DOWN_INTAKE(PivotConstants.BOT_ANGLE),
+    MIDDLE_OUTTAKE(PivotConstants.MID_ANGLE),
+    UP_INTAKE(PivotConstants.TOP_ANGLE),
+    IDLE(null);
+
+    Double value;
+
+    PivotStates(Double value) {
+      this.value = value;
+    }
+
+    public Double position() {
+      return this.value;
+    }
   }
 
   @AutoLogOutput(key = "Pivot/Goal")
@@ -39,25 +49,22 @@ public class Pivot extends SubsystemBase {
             inputs.positionDeg * Math.PI / 180.0, inputs.velocityDegPerSec * Math.PI / 180.0);
 
     switch (goal) {
-      case DOWN_INTAKE:
-        io.runPosition(PivotConstants.BOT_ANGLE, ffVoltage);
-        break;
+      case DOWN_INTAKE -> io.runPosition(PivotStates.DOWN_INTAKE.position(), ffVoltage);
 
-      case MIDDLE_OUTTAKE:
-        io.runPosition(PivotConstants.MID_ANGLE, ffVoltage);
-        break;
+      case MIDDLE_OUTTAKE -> io.runPosition(PivotStates.DOWN_INTAKE.position(), ffVoltage);
 
-      case UP_INTAKE:
-        io.runPosition(PivotConstants.TOP_ANGLE, ffVoltage);
-        break;
+      case UP_INTAKE -> io.runPosition(PivotStates.UP_INTAKE.position(), ffVoltage);
 
-      default:
-        io.stop();
+      default -> io.stop();
     }
   }
 
   public void setPivotGoal(PivotStates desiredGoal) {
     goal = desiredGoal;
+  }
+
+  public boolean atGoal() {
+    return Math.abs(inputs.positionDeg - goal.position()) < PivotConstants.POSITION_TOLERANCE;
   }
 
   public void testPeriodic() {}
