@@ -21,7 +21,7 @@ public class ArmConstants {
   public static final double MIN_ANGLE = -30.0; // degrees
 
   public static final int ARM_CURRENT_LIMIT = 50;
-  public static final double ARM_ENCODER_OFFSET = 55.0 - 16 - 40 + 74 + 6;
+  public static final double ARM_ENCODER_OFFSET = 200;
   public static final double ARM_POSITION_TOLERANCE_DEG = 1.0;
   public static final boolean ARM_INVERTED = false;
   public static final boolean ARM_BRAKE = true;
