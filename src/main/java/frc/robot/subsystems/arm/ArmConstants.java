@@ -4,7 +4,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import frc.robot.Constants;
 
 public class ArmConstants {
-  public static final double ARM_MAX_VELOCITY = 1000, ARM_MAX_ACCELARATION = 1200; // deg/s, deg/s2
+  public static final double ARM_MAX_VELOCITY = 1100, ARM_MAX_ACCELARATION = 1000; // deg/s, deg/s2
   public static final Constraints ARM_CONSTRAINTS =
       new Constraints(ARM_MAX_VELOCITY, ARM_MAX_ACCELARATION);
 
