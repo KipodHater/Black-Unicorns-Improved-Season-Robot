@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import org.littletonrobotics.junction.AutoLogOutput;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.AlignReefCommand;
@@ -17,10 +15,11 @@ import frc.robot.subsystems.gripper.Gripper;
 import frc.robot.subsystems.leds.Leds;
 import frc.robot.subsystems.pivot.Pivot;
 import frc.robot.subsystems.vision.Vision;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 public class SuperStructure extends SubsystemBase {
 
-  public  enum SuperStructureStates {
+  public enum SuperStructureStates {
     TRAVEL,
     INTAKE_CORAL_FLOOR,
     ALIGN_L1,
@@ -45,7 +44,8 @@ public class SuperStructure extends SubsystemBase {
   private final Leds leds;
   private final Vision vision;
 
-  public SuperStructure(Arm arm, Drive drive, Gripper gripper, Leds leds, Pivot pivot, Vision vision) {
+  public SuperStructure(
+      Arm arm, Drive drive, Gripper gripper, Leds leds, Pivot pivot, Vision vision) {
     this.arm = arm;
     this.drive = drive;
     this.gripper = gripper;
@@ -57,7 +57,7 @@ public class SuperStructure extends SubsystemBase {
   @Override
   public void periodic() {
     previousState = currentState;
-    if(wantedState != currentState) currentState = handleStateTransition(wantedState);
+    if (wantedState != currentState) currentState = handleStateTransition(wantedState);
     wantedState = currentState;
     stateMachine();
   }
@@ -67,16 +67,18 @@ public class SuperStructure extends SubsystemBase {
       case TRAVEL -> SuperStructureStates.TRAVEL;
       case INTAKE_CORAL_FLOOR -> SuperStructureStates.INTAKE_CORAL_FLOOR;
       case ALIGN_L1 -> SuperStructureStates.ALIGN_L1;
-      case PLACE_L1 -> currentState == SuperStructureStates.ALIGN_L1 ? SuperStructureStates.PLACE_L1 : currentState;
-      // case CLIMB -> SuperStructureStates.CLIMB;
+      case PLACE_L1 -> currentState == SuperStructureStates.ALIGN_L1
+          ? SuperStructureStates.PLACE_L1
+          : currentState;
+        // case CLIMB -> SuperStructureStates.CLIMB;
     };
   }
 
   private void stateMachine() {
     switch (currentState) {
       case TRAVEL -> {
-        if(previousState != SuperStructureStates.TRAVEL) {
-          if(currentCommand != null) currentCommand.cancel();
+        if (previousState != SuperStructureStates.TRAVEL) {
+          if (currentCommand != null) currentCommand.cancel();
           currentCommand = null;
         }
         arm.setArmGoal(Arm.ArmStates.MIDDLE_OUTTAKE);
@@ -85,29 +87,33 @@ public class SuperStructure extends SubsystemBase {
         drive.setState(DriveStates.FIELD_DRIVE);
       }
       case INTAKE_CORAL_FLOOR -> {
+        if (previousState != SuperStructureStates.INTAKE_CORAL_FLOOR) {
+          if (currentCommand != null) currentCommand.cancel();
+          currentCommand = null;
+        }
         arm.setArmGoal(Arm.ArmStates.DOWN_INTAKE);
         pivot.setPivotGoal(Pivot.PivotStates.DOWN_INTAKE);
         gripper.setGripperGoal(Gripper.GripperStates.INTAKE);
         drive.setState(DriveStates.FIELD_DRIVE); // can possibly add assisted drive
       }
       case ALIGN_L1 -> {
-        if(previousState != currentState) {
-          if(currentCommand != null) currentCommand.cancel();
+        if (previousState != currentState) {
+          if (currentCommand != null) currentCommand.cancel();
           currentCommand = new AlignReefCommand(drive, arm, gripper, leds, pivot);
           currentCommand.schedule();
         }
-        if(currentCommand.isFinished()) { // should never happen unless canceled
+        if (currentCommand.isFinished()) { // should never happen unless canceled
           currentState = SuperStructureStates.TRAVEL;
           wantedState = SuperStructureStates.TRAVEL;
         }
       }
 
       case PLACE_L1 -> {
-        if(previousState != currentState) {
-          if(currentCommand != null) currentCommand.cancel();
+        if (previousState != currentState) {
+          if (currentCommand != null) currentCommand.cancel();
           currentCommand = new PlaceCoralCommandTeleop(arm, drive, gripper, leds, pivot);
         }
-        if(!currentCommand.isScheduled()) {
+        if (!currentCommand.isScheduled()) {
           currentState = SuperStructureStates.TRAVEL;
           wantedState = SuperStructureStates.TRAVEL;
         }
@@ -128,23 +134,26 @@ public class SuperStructure extends SubsystemBase {
   }
 
   public void intakeButtonPress() {
-    if(currentState == SuperStructureStates.INTAKE_CORAL_FLOOR) {
+    System.out.println("yandere");
+    if (currentState == SuperStructureStates.INTAKE_CORAL_FLOOR) {
       setWantedState(SuperStructureStates.TRAVEL);
-    } else if(currentState == SuperStructureStates.TRAVEL) {
+    } else if (currentState == SuperStructureStates.TRAVEL) {
       setWantedState(SuperStructureStates.INTAKE_CORAL_FLOOR);
+      System.out.println("tsundere");
     }
   }
 
   public void alignButtonPress() {
-    if(currentState == SuperStructureStates.ALIGN_L1) {
+    if (currentState == SuperStructureStates.ALIGN_L1) {
       setWantedState(SuperStructureStates.TRAVEL);
-    } else if(currentState == SuperStructureStates.TRAVEL || currentState == SuperStructureStates.INTAKE_CORAL_FLOOR) {
+    } else if (currentState == SuperStructureStates.TRAVEL
+        || currentState == SuperStructureStates.INTAKE_CORAL_FLOOR) {
       setWantedState(SuperStructureStates.ALIGN_L1);
     }
   }
 
   public void placeButtonPress() {
-    if(currentState == SuperStructureStates.ALIGN_L1) {
+    if (currentState == SuperStructureStates.ALIGN_L1) {
       setWantedState(SuperStructureStates.PLACE_L1);
     }
   }

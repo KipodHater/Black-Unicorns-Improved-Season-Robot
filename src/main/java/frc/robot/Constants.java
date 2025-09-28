@@ -46,7 +46,6 @@ public final class Constants {
   public static final double FIELD_WIDTH = 8.05;
   public static final double POSE_BUFFER_SIZE = 2.0; // seconds
 
-  
   public static class FieldConstants {
 
     public static AprilTagFieldLayout aprilTagLayout =
@@ -86,8 +85,7 @@ public final class Constants {
     };
   }
 
-  
-      public final class RobotState {
+  public final class RobotState {
 
     public static final double SWITCH_SCORE_FRONT_THRESHOLD = 100.0; // deg
 

@@ -12,19 +12,20 @@ import frc.robot.subsystems.pivot.Pivot;
 
 public class PlaceCoralCommandTeleop extends SequentialCommandGroup {
 
-  public PlaceCoralCommandTeleop(
-      Arm arm, Drive drive, Gripper gripper, Leds leds, Pivot pivot) {
+  public PlaceCoralCommandTeleop(Arm arm, Drive drive, Gripper gripper, Leds leds, Pivot pivot) {
     addRequirements(arm, drive, gripper, leds, pivot);
 
-    addCommands(Commands.parallel(Commands.runOnce(() -> leds.setState(ledsStates.FINISH_SCORE)),
-        Commands.runOnce(() -> gripper.setGripperGoal(Gripper.GripperStates.OUTTAKE_STRONG))));
+    addCommands(
+        Commands.parallel(
+            Commands.runOnce(() -> leds.setState(ledsStates.FINISH_SCORE)),
+            Commands.runOnce(() -> gripper.setGripperGoal(Gripper.GripperStates.OUTTAKE_STRONG))));
     addCommands(Commands.waitSeconds(0.3));
-    addCommands(Commands.runOnce(
-                  () ->
-                      drive.setStateSlowlyForward(
-                          RobotState.getInstance().getCoralScoringInfo().backside())));
+    addCommands(
+        Commands.runOnce(
+            () ->
+                drive.setStateSlowlyForward(
+                    RobotState.getInstance().getCoralScoringInfo().backside())));
 
     addCommands(Commands.waitSeconds(0.3));
-    }
+  }
 }
-

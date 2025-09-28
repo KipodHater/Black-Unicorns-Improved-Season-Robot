@@ -4,7 +4,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import frc.robot.Constants;
 
 public class ArmConstants {
-  public static final double ARM_MAX_VELOCITY = 800, ARM_MAX_ACCELARATION = 1000; // deg/s, deg/s2
+  public static final double ARM_MAX_VELOCITY = 1000, ARM_MAX_ACCELARATION = 1200; // deg/s, deg/s2
   public static final Constraints ARM_CONSTRAINTS =
       new Constraints(ARM_MAX_VELOCITY, ARM_MAX_ACCELARATION);
 
@@ -35,7 +35,7 @@ public class ArmConstants {
 
   public static final double MID_ANGLE = 44.5; // 47.5
   public static final double TOP_ANGLE = 80.0; // 76
-  public static final double BOT_ANGLE = -12.5; // 355.5
+  public static final double BOT_ANGLE = -5; // 355.5
   public static final double CLIMB_ANGLE = -15;
 
   public record Gains(

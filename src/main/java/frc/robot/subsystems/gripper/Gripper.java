@@ -2,10 +2,8 @@ package frc.robot.subsystems.gripper;
 
 import static frc.robot.subsystems.gripper.GripperConstants.*;
 
-import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 public class Gripper extends SubsystemBase {
 
@@ -28,24 +26,25 @@ public class Gripper extends SubsystemBase {
     this.io = io;
   }
 
+  @Override
   public void periodic() {
-    io.updateInputs(inputs);
-    Logger.processInputs("Gripper", inputs);
+    // io.updateInputs(inputs);
+    // Logger.processInputs("Gripper", inputs);
 
-    switch (goal) {
-      case IDLE -> io.stop();
+    // switch (goal) {
+    //   case IDLE -> io.stop();
 
-      case OUTTAKE -> io.setVoltageOpenLoop(GRIPPER_OUTTAKE_SPEED);
+    //   case OUTTAKE -> io.setVoltageOpenLoop(GRIPPER_OUTTAKE_SPEED);
 
-      case OUTTAKE_STRONG -> io.setVoltageOpenLoop(GRIPPER_OUTTAKEFAST_SPEED);
+    //   case OUTTAKE_STRONG -> io.setVoltageOpenLoop(GRIPPER_OUTTAKEFAST_SPEED);
 
-      case INTAKE -> io.setVoltageOpenLoop(GRIPPER_INTAKE_SPEED);
+    //   case INTAKE -> io.setVoltageOpenLoop(GRIPPER_INTAKE_SPEED);
 
-      case HOLD -> io.setVoltageOpenLoop(0.03);
+    //   case HOLD -> io.setVoltageOpenLoop(0.03);
 
-      default -> io.stop();
-    }
-    ;
+    //   default -> io.stop();
+    // }
+    // ;
   }
 
   public void setGripperGoal(GripperStates desiredGoal) {

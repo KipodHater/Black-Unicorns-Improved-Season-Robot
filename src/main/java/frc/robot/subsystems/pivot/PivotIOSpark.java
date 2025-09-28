@@ -29,6 +29,8 @@ public class PivotIOSpark implements PivotIO {
 
   private boolean brakeEnabled = true;
 
+  private double curMotorVoltage = 0.0;
+
   @AutoLogOutput(key = "Pivot/Setpoint")
   private Double pivotSetpoint;
 
@@ -63,19 +65,21 @@ public class PivotIOSpark implements PivotIO {
 
     ifOk(
         motor,
-        pivotEncoder::getPosition,
-        (position) -> inputs.positionDeg = position > 180 ? position % 360 - 360 : position % 360);
+        () -> pivotEncoder.getPosition() * 360,
+        (position) -> inputs.positionDeg = position < 0 ? (position + 360) % 360 : position % 360);
     ifOk(motor, pivotEncoder::getVelocity, (velocity) -> inputs.velocityDegPerSec = velocity);
 
-    ifOk(motor, motor::getBusVoltage, (voltage) -> inputs.motorVoltage = voltage);
+    // ifOk(motor, motor::getBusVoltage, (voltage) -> inputs.motorVoltage = voltage);
+    inputs.motorVoltage = curMotorVoltage;
     ifOk(motor, motor::getMotorTemperature, (temp) -> inputs.motorTemp = temp);
     ifOk(motor, motor::getOutputCurrent, (current) -> inputs.motorCurrent = current);
 
-    inputs.motorConnected = motorDebouncer.calculate(sparkStickyFault);
+    inputs.motorConnected = motorDebouncer.calculate(!sparkStickyFault);
   }
 
   @Override
   public void runVoltage(double voltage) {
+    curMotorVoltage = voltage;
     motor.setVoltage(voltage);
   }
 
@@ -86,7 +90,7 @@ public class PivotIOSpark implements PivotIO {
 
   @Override
   public void runPosition(double position, double feedforward) {
-    runVoltage(feedforward + pivotPIDController.calculate(pivotEncoder.getPosition(), position));
+    runVoltage(pivotPIDController.calculate(pivotEncoder.getPosition() * 360, position));
   }
 
   @Override

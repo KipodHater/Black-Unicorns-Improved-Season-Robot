@@ -28,7 +28,7 @@ public class PivotConstants {
   public static final double MIN_ANGLE = -30.0; // degrees
 
   public static final int CURRENT_LIMIT = 50;
-  public static final double ENCODER_OFFSET = 207.2 - 1.5 - 4.8 + 118;
+  public static final double ENCODER_OFFSET = 207.2 - 1.5 - 4.8 + 118 + 20;
   public static final double POSITION_TOLERANCE = 1.0;
   public static final boolean PIVOT_BRAKE = true;
   public static final double POSITION_CONVERSION_FACTOR = 360; // makes it degrees

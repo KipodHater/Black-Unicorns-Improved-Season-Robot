@@ -24,7 +24,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.drive.Drive.DriveStates;
 import frc.robot.subsystems.drive.DriveConstants;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIONavX;
@@ -33,7 +32,6 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
-import frc.robot.subsystems.gripper.Gripper.GripperStates;
 import frc.robot.subsystems.leds.Leds;
 import frc.robot.subsystems.pivot.Pivot;
 import frc.robot.subsystems.pivot.PivotIO;
@@ -102,10 +100,9 @@ public class RobotContainer {
             new Vision(
                 RobotState.getInstance()::addVisionObservation,
                 new VisionIO[] {
-                  /*
-                  new VisionIOPhoton("camera0", VisionConstants.robotToCamera0),
-                  new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),
-                  new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)*/
+                  // new VisionIOPhoton("camera0", VisionConstants.robotToCamera0)
+                  // new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),
+                  // new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
                 });
         break;
 
@@ -115,7 +112,7 @@ public class RobotContainer {
                 DriveConstants.mapleSimConfig, new Pose2d(3, 3, new Rotation2d()));
 
         SimulatedArena.getInstance().addDriveTrainSimulation(driveSimulation);
-        
+
         arm = new Arm(new ArmIOSim());
         drive =
             new Drive(
@@ -180,15 +177,18 @@ public class RobotContainer {
 
     controller.a().onTrue(Commands.runOnce(structure::intakeButtonPress, structure));
     controller.b().onTrue(Commands.runOnce(structure::defaultButtonPress, structure));
-    controller.rightBumper().onTrue(Commands.runOnce(structure::alignButtonPress, structure));
-    controller.rightTrigger().onTrue(Commands.runOnce(structure::placeButtonPress, structure));
+    // controller.rightBumper().onTrue(Commands.runOnce(structure::alignButtonPress, structure));
+    // controller.rightTrigger().onTrue(Commands.runOnce(structure::placeButtonPress, structure));
 
     final Runnable resetGyro =
         Constants.currentMode == Constants.Mode.SIM
             ? () -> RobotState.getInstance().resetPose(driveSimulation.getSimulatedDriveTrainPose())
-            : () -> RobotState.getInstance().resetPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d()));
+            : () ->
+                RobotState.getInstance()
+                    .resetPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d()));
 
-    new Trigger(() -> mainDriver.getRawButton(6)).onTrue(Commands.runOnce(resetGyro).ignoringDisable(true));
+    new Trigger(() -> mainDriver.getRawButton(6))
+        .onTrue(Commands.runOnce(resetGyro).ignoringDisable(true));
   }
 
   public Command getAutonomousCommand() {
@@ -196,7 +196,7 @@ public class RobotContainer {
   }
 
   public void periodic() {
-    
+    // RobotState.getInstance().periodic();
   }
 
   public void resetSimulation() {

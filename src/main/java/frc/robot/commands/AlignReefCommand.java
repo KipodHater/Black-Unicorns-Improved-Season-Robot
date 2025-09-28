@@ -4,7 +4,6 @@
 
 package frc.robot.commands;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.RobotState;
@@ -22,25 +21,24 @@ public class AlignReefCommand extends SequentialCommandGroup {
     RobotState.getInstance().setUpScoringTargetCoral();
     addRequirements(drive, arm, pivot, gripper);
     addCommands(
-            Commands.sequence(
-                Commands.parallel(
-                    Commands.runOnce(() -> leds.setState(Leds.ledsStates.PURPLE), leds),
-                    SimpleCommands.moveToScoreCommand(
-                        arm,
-                        pivot),
-                    Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.HOLD)),
-                    SimpleCommands.driveAutoAlignTolerance(
-                        drive,
-                        () -> RobotState.getInstance().getCoralScoringInfo().scorePose(),
-                        0.05,
-                        3)),
-                Commands.race(
-                    SimpleCommands.nonStopAutoAlignCommand(
-                        drive, () -> RobotState.getInstance().getCoralScoringInfo().alignPose()),
-                    // Commands.waitSeconds(0.3)),
+        Commands.sequence(
+            Commands.parallel(
+                Commands.runOnce(() -> leds.setState(Leds.ledsStates.PURPLE), leds),
+                SimpleCommands.moveToScoreCommand(arm, pivot),
+                Commands.runOnce(() -> gripper.setGripperGoal(GripperStates.HOLD)),
+                SimpleCommands.driveAutoAlignTolerance(
+                    drive,
+                    () -> RobotState.getInstance().getCoralScoringInfo().scorePose(),
+                    0.05,
+                    3)),
+            Commands.race(
+                SimpleCommands.nonStopAutoAlignCommand(
+                    drive, () -> RobotState.getInstance().getCoralScoringInfo().alignPose()),
+                // Commands.waitSeconds(0.3)),
                 Commands.parallel(
                     SimpleCommands.nonStopAutoAlignCommand(
                         drive, () -> RobotState.getInstance().getCoralScoringInfo().scorePose())),
-                    SimpleCommands.blinkLedsOnAlignCondition(leds, () -> drive.isAtAlignSetpoint(0.03, 2)))));
+                SimpleCommands.blinkLedsOnAlignCondition(
+                    leds, () -> drive.isAtAlignSetpoint(0.03, 2)))));
   }
 }

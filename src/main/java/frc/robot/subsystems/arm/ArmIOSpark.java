@@ -31,6 +31,8 @@ public class ArmIOSpark implements ArmIO {
 
   private boolean brakeEnabled = true;
 
+  private double curMotorVoltage = 0.0;
+
   @AutoLogOutput(key = "Arm/Setpoint")
   private Double armSetpoint;
 
@@ -41,8 +43,6 @@ public class ArmIOSpark implements ArmIO {
     config = new SparkMaxConfig();
     followerConfig = new SparkMaxConfig();
 
-    armEncoder = motor.getAbsoluteEncoder();
-
     config.inverted(ArmConstants.ARM_INVERTED);
 
     config.idleMode(IdleMode.kBrake).smartCurrentLimit(50).voltageCompensation(12.0);
@@ -50,7 +50,7 @@ public class ArmIOSpark implements ArmIO {
     followerConfig.apply(config);
     followerConfig.follow(motor, true);
 
-    config
+    followerConfig
         .encoder
         .positionConversionFactor(ArmConstants.POSITION_CONVERSION_FACTOR)
         .velocityConversionFactor(ArmConstants.VELOCITY_CONVERSION_FACTOR)
@@ -69,6 +69,8 @@ public class ArmIOSpark implements ArmIO {
             follower.configure(
                 followerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters));
 
+    armEncoder = follower.getAbsoluteEncoder();
+
     armPIDController =
         new ProfiledPIDController(GAINS.KP(), GAINS.KI(), GAINS.KD(), ARM_CONSTRAINTS);
   }
@@ -79,11 +81,17 @@ public class ArmIOSpark implements ArmIO {
 
     ifOk(
         motor,
-        armEncoder::getPosition,
-        (position) -> inputs.positionDeg = position > 180 ? position % 360 - 360 : position % 360);
-    ifOk(motor, armEncoder::getVelocity, (velocity) -> inputs.velocityDegPerSec = velocity);
+        () -> armEncoder.getPosition() * 360,
+        (position) ->
+            inputs.positionDeg = position > 180 ? (position) % 360 - 360 : position % 360);
+    ifOk(
+        motor,
+        () -> armEncoder.getVelocity() * 60,
+        (velocity) -> inputs.velocityDegPerSec = velocity);
 
-    ifOk(motor, motor::getBusVoltage, (voltage) -> inputs.motorVoltage = voltage);
+    // ifOk(motor, motor::getBusVoltage, (voltage) -> inputs.motorVoltage = voltage);
+    // ifOk(motor, motor::getBusVoltage, (voltage) -> inputs.motorVoltage = voltage);
+    inputs.motorVoltage = curMotorVoltage;
     ifOk(motor, motor::getMotorTemperature, (temp) -> inputs.motorTemp = temp);
     ifOk(motor, motor::getOutputCurrent, (current) -> inputs.motorCurrent = current);
 
@@ -91,7 +99,10 @@ public class ArmIOSpark implements ArmIO {
 
     sparkStickyFault = false;
 
-    ifOk(follower, follower::getBusVoltage, (voltage) -> inputs.followerVoltage = voltage);
+    // ifOk(follower, follower::getBusVoltage, (voltage) -> inputs.followerVoltage = voltage);
+    // ifOk(follower, follower::getBusVoltage, (voltage) -> inputs.followerVoltage = voltage);
+    inputs.followerVoltage = curMotorVoltage;
+
     ifOk(follower, follower::getMotorTemperature, (temp) -> inputs.motorTemp = temp);
     ifOk(follower, follower::getOutputCurrent, (current) -> inputs.motorCurrent = current);
 
@@ -100,6 +111,7 @@ public class ArmIOSpark implements ArmIO {
 
   @Override
   public void runVoltage(double voltage) {
+    curMotorVoltage = voltage;
     motor.setVoltage(voltage);
   }
 
@@ -110,7 +122,13 @@ public class ArmIOSpark implements ArmIO {
 
   @Override
   public void runPosition(double position, double feedforward) {
-    runVoltage(feedforward + armPIDController.calculate(armEncoder.getPosition(), position));
+    runVoltage(
+        feedforward
+            + armPIDController.calculate(
+                armEncoder.getPosition() * 360 > 180
+                    ? (armEncoder.getPosition() * 360) % 360 - 360
+                    : armEncoder.getPosition() * 360 % 360,
+                position));
   }
 
   @Override

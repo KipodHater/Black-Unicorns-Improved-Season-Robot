@@ -2,7 +2,6 @@ package frc.robot.subsystems.arm;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -39,6 +38,7 @@ public class Arm extends SubsystemBase {
     this.io = io;
   }
 
+  @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Arm", inputs);
@@ -46,6 +46,7 @@ public class Arm extends SubsystemBase {
     double ffVoltage =
         feedforwardController.calculate(
             inputs.positionDeg * Math.PI / 180.0, inputs.velocityDegPerSec * Math.PI / 180.0);
+    System.out.println(ffVoltage);
 
     switch (goal) {
       case DOWN_INTAKE -> io.runPosition(ArmStates.DOWN_INTAKE.position(), ffVoltage);

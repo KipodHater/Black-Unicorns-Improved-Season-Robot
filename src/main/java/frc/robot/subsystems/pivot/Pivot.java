@@ -2,7 +2,6 @@ package frc.robot.subsystems.pivot;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -40,6 +39,7 @@ public class Pivot extends SubsystemBase {
     this.io = io;
   }
 
+  @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Pivot", inputs);
@@ -51,7 +51,7 @@ public class Pivot extends SubsystemBase {
     switch (goal) {
       case DOWN_INTAKE -> io.runPosition(PivotStates.DOWN_INTAKE.position(), ffVoltage);
 
-      case MIDDLE_OUTTAKE -> io.runPosition(PivotStates.DOWN_INTAKE.position(), ffVoltage);
+      case MIDDLE_OUTTAKE -> io.runPosition(PivotStates.MIDDLE_OUTTAKE.position(), ffVoltage);
 
       case UP_INTAKE -> io.runPosition(PivotStates.UP_INTAKE.position(), ffVoltage);
 

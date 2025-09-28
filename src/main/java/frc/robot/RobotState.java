@@ -377,7 +377,9 @@ public class RobotState {
             Timer.getFPGATimestamp() - coralPose.timestamp()
                 > 1); // can change this to something different
 
-    // Log coral posses
+    // System.out.println(coralPoses.size());
+    // // Log coral posses
+    // double time = RobotController.getFPGATime();
     Logger.recordOutput(
         "RobotState/CoralPoses",
         coralPoses.stream()
@@ -390,6 +392,7 @@ public class RobotState {
                             FieldConstants.coralDiameter / 2.0),
                         new Rotation3d()))
             .toArray(Pose3d[]::new));
+    // System.out.println(RobotController.getFPGATime() - time);
   }
 
   public int getClosestReefFaceCoral() {

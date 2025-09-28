@@ -61,5 +61,4 @@ public class DriveConstants {
                   Meters.of(wheelRadiusMeters),
                   KilogramSquareMeters.of(0.02),
                   wheelCOF));
-                  
 }
