@@ -134,12 +134,12 @@ public class SuperStructure extends SubsystemBase {
   }
 
   public void intakeButtonPress() {
-    System.out.println("yandere");
+    // System.out.println("yandere");
     if (currentState == SuperStructureStates.INTAKE_CORAL_FLOOR) {
       setWantedState(SuperStructureStates.TRAVEL);
     } else if (currentState == SuperStructureStates.TRAVEL) {
       setWantedState(SuperStructureStates.INTAKE_CORAL_FLOOR);
-      System.out.println("tsundere");
+      // System.out.println("tsundere");
     }
   }
 

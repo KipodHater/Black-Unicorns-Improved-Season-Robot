@@ -75,9 +75,9 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
 
-    m_controllerLeftX = () -> mainDriver.getRawAxis(3);
-    m_controllerLeftY = () -> -controller.getRawAxis(2);
-    m_controllerRightX = () -> -mainDriver.getRawAxis(0);
+    m_controllerLeftX = () -> controller.getLeftX();
+    m_controllerLeftY = () -> -controller.getLeftY();
+    m_controllerRightX = () -> -controller.getRightX();
 
     switch (Constants.currentMode) {
       case REAL:
@@ -99,8 +99,7 @@ public class RobotContainer {
         vision =
             new Vision(
                 RobotState.getInstance()::addVisionObservation,
-                new VisionIO[] {
-                  // new VisionIOPhoton("camera0", VisionConstants.robotToCamera0)
+                new VisionIO[] {new VisionIOPhoton("camera0", VisionConstants.robotToCamera0)
                   // new VisionIOPhoton("camera1", VisionConstants.robotToCamera1),
                   // new VisionIOLimelight("limelight-tsachi", RobotState.getInstance()::getYaw)
                 });
@@ -187,7 +186,7 @@ public class RobotContainer {
                 RobotState.getInstance()
                     .resetPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d()));
 
-    new Trigger(() -> mainDriver.getRawButton(6))
+    new Trigger(() -> controller.getHID().getRawButton(7))
         .onTrue(Commands.runOnce(resetGyro).ignoringDisable(true));
   }
 

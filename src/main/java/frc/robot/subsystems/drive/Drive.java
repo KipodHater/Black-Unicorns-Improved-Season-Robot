@@ -384,6 +384,11 @@ public class Drive extends SubsystemBase {
   private void fieldCentricJoystickDrive(double vx, double vy, double vr) {
     Translation2d linearVelocity = getLinearVelocityFromJoysticks(vx, vy);
 
+    linearVelocity =
+        linearVelocity.getDistance(new Translation2d()) < 0.05
+            ? new Translation2d()
+            : linearVelocity;
+
     double omega = MathUtil.applyDeadband(vr, DriveConstants.DEADBAND);
     // Square rotation value for more precise control
     omega = Math.copySign(omega * omega, omega);

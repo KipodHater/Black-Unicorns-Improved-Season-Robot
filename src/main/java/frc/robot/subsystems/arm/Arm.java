@@ -46,7 +46,7 @@ public class Arm extends SubsystemBase {
     double ffVoltage =
         feedforwardController.calculate(
             inputs.positionDeg * Math.PI / 180.0, inputs.velocityDegPerSec * Math.PI / 180.0);
-    System.out.println(ffVoltage);
+    // System.out.println(ffVoltage);
 
     switch (goal) {
       case DOWN_INTAKE -> io.runPosition(ArmStates.DOWN_INTAKE.position(), ffVoltage);
