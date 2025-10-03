@@ -31,14 +31,14 @@ public class AlignReefCommand extends SequentialCommandGroup {
                     () -> RobotState.getInstance().getCoralScoringInfo().scorePose(),
                     0.05,
                     3)),
-            Commands.race(
+            Commands.sequence(
                 SimpleCommands.nonStopAutoAlignCommand(
                     drive, () -> RobotState.getInstance().getCoralScoringInfo().alignPose()),
                 // Commands.waitSeconds(0.3)),
                 Commands.parallel(
                     SimpleCommands.nonStopAutoAlignCommand(
-                        drive, () -> RobotState.getInstance().getCoralScoringInfo().scorePose())),
-                SimpleCommands.blinkLedsOnAlignCondition(
-                    leds, () -> drive.isAtAlignSetpoint(0.03, 2)))));
+                        drive, () -> RobotState.getInstance().getCoralScoringInfo().scorePose()),
+                    SimpleCommands.blinkLedsOnAlignCondition(
+                        leds, () -> drive.isAtAlignSetpoint(0.03, 2))))));
   }
 }

@@ -81,8 +81,8 @@ public class SuperStructure extends SubsystemBase {
           if (currentCommand != null) currentCommand.cancel();
           currentCommand = null;
         }
-        arm.setArmGoal(Arm.ArmStates.MIDDLE_OUTTAKE);
-        pivot.setPivotGoal(Pivot.PivotStates.MIDDLE_OUTTAKE);
+        arm.setArmGoal(Arm.ArmStates.MIDDLE_OUTTAKE); // middle outtake
+        pivot.setPivotGoal(Pivot.PivotStates.IDLE); // middle outtake
         gripper.setGripperGoal(Gripper.GripperStates.HOLD);
         drive.setState(DriveStates.FIELD_DRIVE);
       }
@@ -92,7 +92,7 @@ public class SuperStructure extends SubsystemBase {
           currentCommand = null;
         }
         arm.setArmGoal(Arm.ArmStates.DOWN_INTAKE);
-        pivot.setPivotGoal(Pivot.PivotStates.DOWN_INTAKE);
+        pivot.setPivotGoal(Pivot.PivotStates.IDLE); // DOWN INTAKE
         gripper.setGripperGoal(Gripper.GripperStates.INTAKE);
         drive.setState(DriveStates.FIELD_DRIVE); // can possibly add assisted drive
       }
@@ -160,5 +160,10 @@ public class SuperStructure extends SubsystemBase {
 
   public SuperStructureStates getCurrentState() {
     return currentState;
+  }
+
+  public void disabledInit() {
+    currentState = SuperStructureStates.TRAVEL;
+    wantedState = SuperStructureStates.TRAVEL;
   }
 }

@@ -16,27 +16,22 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
-import frc.robot.subsystems.drive.GyroIO;
-import frc.robot.subsystems.drive.GyroIONavX;
-import frc.robot.subsystems.drive.GyroIOSim;
-import frc.robot.subsystems.drive.ModuleIO;
-import frc.robot.subsystems.drive.ModuleIOSim;
-import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
 import frc.robot.subsystems.leds.Leds;
 import frc.robot.subsystems.pivot.Pivot;
 import frc.robot.subsystems.pivot.PivotIO;
 import frc.robot.subsystems.pivot.PivotIOSpark;
 import frc.robot.subsystems.vision.*;
+import java.io.File;
 import java.util.function.DoubleSupplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -84,12 +79,7 @@ public class RobotContainer {
         arm = new Arm(new ArmIOSpark());
         drive =
             new Drive(
-                new GyroIONavX(),
-                new ModuleIOTalonFX(TunerConstants.FrontLeft),
-                new ModuleIOTalonFX(TunerConstants.FrontRight),
-                new ModuleIOTalonFX(TunerConstants.BackLeft),
-                new ModuleIOTalonFX(TunerConstants.BackRight),
-                (robotPose) -> {},
+                new File(Filesystem.getDeployDirectory(), "swerve"),
                 m_controllerLeftX,
                 m_controllerLeftY,
                 m_controllerRightX);
@@ -115,12 +105,7 @@ public class RobotContainer {
         arm = new Arm(new ArmIOSim());
         drive =
             new Drive(
-                new GyroIOSim(driveSimulation.getGyroSimulation()),
-                new ModuleIOSim(driveSimulation.getModules()[0]),
-                new ModuleIOSim(driveSimulation.getModules()[1]),
-                new ModuleIOSim(driveSimulation.getModules()[2]),
-                new ModuleIOSim(driveSimulation.getModules()[3]),
-                (robotPose) -> driveSimulation.getSimulatedDriveTrainPose(),
+                new File(Filesystem.getDeployDirectory(), "swerve"),
                 controller::getLeftX,
                 controller::getLeftY,
                 () -> controller.getRawAxis(4));
@@ -148,12 +133,7 @@ public class RobotContainer {
         arm = new Arm(new ArmIO() {});
         drive =
             new Drive(
-                new GyroIO() {},
-                new ModuleIO() {},
-                new ModuleIO() {},
-                new ModuleIO() {},
-                new ModuleIO() {},
-                (robotPose) -> {},
+                new File(Filesystem.getDeployDirectory(), "swerve"),
                 controller::getLeftX,
                 controller::getLeftY,
                 () -> controller.getRawAxis(4));
@@ -176,15 +156,18 @@ public class RobotContainer {
 
     controller.a().onTrue(Commands.runOnce(structure::intakeButtonPress, structure));
     controller.b().onTrue(Commands.runOnce(structure::defaultButtonPress, structure));
-    // controller.rightBumper().onTrue(Commands.runOnce(structure::alignButtonPress, structure));
-    // controller.rightTrigger().onTrue(Commands.runOnce(structure::placeButtonPress, structure));
+    controller.rightBumper().onTrue(Commands.runOnce(structure::alignButtonPress, structure));
+    controller.rightTrigger().onTrue(Commands.runOnce(structure::placeButtonPress, structure));
 
     final Runnable resetGyro =
         Constants.currentMode == Constants.Mode.SIM
             ? () -> RobotState.getInstance().resetPose(driveSimulation.getSimulatedDriveTrainPose())
             : () ->
                 RobotState.getInstance()
-                    .resetPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d()));
+                    .resetPose(
+                        new Pose2d(
+                            RobotState.getInstance().getEstimatedPose().getTranslation(),
+                            new Rotation2d()));
 
     new Trigger(() -> controller.getHID().getRawButton(7))
         .onTrue(Commands.runOnce(resetGyro).ignoringDisable(true));
@@ -196,6 +179,10 @@ public class RobotContainer {
 
   public void periodic() {
     // RobotState.getInstance().periodic();
+  }
+
+  public void disableInit() {
+    structure.disabledInit();
   }
 
   public void resetSimulation() {

@@ -44,19 +44,19 @@ public class Pivot extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Pivot", inputs);
 
-    double ffVoltage =
-        feedforwardController.calculate(
-            inputs.positionDeg * Math.PI / 180.0, inputs.velocityDegPerSec * Math.PI / 180.0);
+    // double ffVoltage =
+    //     feedforwardController.calculate(
+    //         inputs.positionDeg * Math.PI / 180.0, inputs.velocityDegPerSec * Math.PI / 180.0);
 
-    switch (goal) {
-      case DOWN_INTAKE -> io.runPosition(PivotStates.DOWN_INTAKE.position(), ffVoltage);
+    // switch (goal) {
+    //   case DOWN_INTAKE -> io.runPosition(PivotStates.DOWN_INTAKE.position(), ffVoltage);
 
-      case MIDDLE_OUTTAKE -> io.runPosition(PivotStates.MIDDLE_OUTTAKE.position(), ffVoltage);
+    //   case MIDDLE_OUTTAKE -> io.runPosition(PivotStates.MIDDLE_OUTTAKE.position(), ffVoltage);
 
-      case UP_INTAKE -> io.runPosition(PivotStates.UP_INTAKE.position(), ffVoltage);
+    //   case UP_INTAKE -> io.runPosition(PivotStates.UP_INTAKE.position(), ffVoltage);
 
-      default -> io.stop();
-    }
+    //   default -> io.stop();
+    // }
   }
 
   public void setPivotGoal(PivotStates desiredGoal) {
