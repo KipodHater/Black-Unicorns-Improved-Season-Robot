@@ -31,6 +31,8 @@ import frc.robot.subsystems.pivot.Pivot;
 import frc.robot.subsystems.pivot.PivotIO;
 import frc.robot.subsystems.pivot.PivotIOSpark;
 import frc.robot.subsystems.vision.*;
+import frc.robot.util.AllianceFlipping;
+
 import java.io.File;
 import java.util.function.DoubleSupplier;
 import org.ironmaple.simulation.SimulatedArena;
@@ -167,7 +169,7 @@ public class RobotContainer {
                     .resetPose(
                         new Pose2d(
                             RobotState.getInstance().getEstimatedPose().getTranslation(),
-                            new Rotation2d()));
+                            AllianceFlipping.apply(Rotation2d.fromDegrees(180))));
 
     new Trigger(() -> controller.getHID().getRawButton(7))
         .onTrue(Commands.runOnce(resetGyro).ignoringDisable(true));
@@ -208,7 +210,7 @@ public class RobotContainer {
     if (Constants.currentMode != Constants.Mode.SIM) return;
 
     // Reset the simulation to the initial pose
-    driveSimulation.setSimulationWorldPose(drive.getPose());
+    driveSimulation.setSimulationWorldPose(RobotState.getInstance().getEstimatedPose());
     gripper.autonomousInit();
   }
 }
