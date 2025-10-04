@@ -125,11 +125,14 @@ public class RobotState {
     return robotVelocity;
   }
 
-  public void resetPose(Pose2d newPose) {
-    gyroOffset = newPose.getRotation().minus(odometryPose.getRotation().minus(gyroOffset));
-    estimatedPose = newPose;
-    odometryPose = newPose;
+  public void resetPose(Pose2d pose) {
+    // Gyro offset is the rotation that maps the old gyro rotation (estimated - offset) to the new
+    // frame of rotation
+    gyroOffset = pose.getRotation().minus(odometryPose.getRotation().minus(gyroOffset));
+    estimatedPose = pose;
+    odometryPose = pose;
     poseBuffer.clear();
+    poseBuffer.addSample(Timer.getFPGATimestamp(), pose);
   }
 
   public Pose2d getEstimatedPose(double timestamp) {

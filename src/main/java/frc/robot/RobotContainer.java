@@ -16,15 +16,20 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.DriveConstants;
+import frc.robot.subsystems.drive.GyroIO;
+import frc.robot.subsystems.drive.GyroIONavX;
+import frc.robot.subsystems.drive.GyroIOSim;
+import frc.robot.subsystems.drive.ModuleIO;
+import frc.robot.subsystems.drive.ModuleIOSim;
+import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.gripper.*;
 import frc.robot.subsystems.leds.Leds;
 import frc.robot.subsystems.pivot.Pivot;
@@ -32,8 +37,6 @@ import frc.robot.subsystems.pivot.PivotIO;
 import frc.robot.subsystems.pivot.PivotIOSpark;
 import frc.robot.subsystems.vision.*;
 import frc.robot.util.AllianceFlipping;
-
-import java.io.File;
 import java.util.function.DoubleSupplier;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -59,7 +62,7 @@ public class RobotContainer {
   private final SuperStructure structure;
 
   // Controller
-  private final CommandXboxController controller = new CommandXboxController(1);
+  // private final CommandXboxController controller = new CommandXboxController(1);
   private final GenericHID mainDriver = new GenericHID(0);
 
   private DoubleSupplier m_controllerLeftX;
@@ -72,16 +75,24 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
 
-    m_controllerLeftX = () -> controller.getLeftX();
-    m_controllerLeftY = () -> -controller.getLeftY();
-    m_controllerRightX = () -> -controller.getRightX();
+    // m_controllerLeftX = () -> controller.getLeftX();
+    // m_controllerLeftY = () -> -controller.getLeftY();
+    // m_controllerRightX = () -> -controller.getRightX();
+
+    m_controllerLeftX = () -> mainDriver.getRawAxis(0);
+    m_controllerLeftY = () -> -mainDriver.getRawAxis(1);
+    m_controllerRightX = () -> -mainDriver.getRawAxis(2);
 
     switch (Constants.currentMode) {
       case REAL:
         arm = new Arm(new ArmIOSpark());
         drive =
             new Drive(
-                new File(Filesystem.getDeployDirectory(), "swerve"),
+                new GyroIONavX(),
+                new ModuleIOTalonFX(TunerConstants.FrontLeft),
+                new ModuleIOTalonFX(TunerConstants.FrontRight),
+                new ModuleIOTalonFX(TunerConstants.BackLeft),
+                new ModuleIOTalonFX(TunerConstants.BackRight),
                 m_controllerLeftX,
                 m_controllerLeftY,
                 m_controllerRightX);
@@ -107,10 +118,14 @@ public class RobotContainer {
         arm = new Arm(new ArmIOSim());
         drive =
             new Drive(
-                new File(Filesystem.getDeployDirectory(), "swerve"),
-                controller::getLeftX,
-                controller::getLeftY,
-                () -> controller.getRawAxis(4));
+                new GyroIOSim(driveSimulation.getGyroSimulation()),
+                new ModuleIOSim(driveSimulation.getModules()[0]),
+                new ModuleIOSim(driveSimulation.getModules()[1]),
+                new ModuleIOSim(driveSimulation.getModules()[2]),
+                new ModuleIOSim(driveSimulation.getModules()[3]),
+                m_controllerLeftX,
+                m_controllerLeftY,
+                m_controllerRightX);
         gripper = new Gripper(new GripperIOSim(driveSimulation));
         leds = new Leds();
         pivot = new Pivot(new PivotIO() {});
@@ -135,10 +150,14 @@ public class RobotContainer {
         arm = new Arm(new ArmIO() {});
         drive =
             new Drive(
-                new File(Filesystem.getDeployDirectory(), "swerve"),
-                controller::getLeftX,
-                controller::getLeftY,
-                () -> controller.getRawAxis(4));
+                new GyroIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {},
+                new ModuleIO() {},
+                m_controllerLeftX,
+                m_controllerLeftY,
+                m_controllerRightX);
         gripper = new Gripper(new GripperIO() {});
         leds = new Leds();
         pivot = new Pivot(new PivotIO() {});
@@ -156,10 +175,19 @@ public class RobotContainer {
 
   private void configureButtonBindings() {
 
-    controller.a().onTrue(Commands.runOnce(structure::intakeButtonPress, structure));
-    controller.b().onTrue(Commands.runOnce(structure::defaultButtonPress, structure));
-    controller.rightBumper().onTrue(Commands.runOnce(structure::alignButtonPress, structure));
-    controller.rightTrigger().onTrue(Commands.runOnce(structure::placeButtonPress, structure));
+    // controller.a().onTrue(Commands.runOnce(structure::intakeButtonPress, structure));
+    // controller.b().onTrue(Commands.runOnce(structure::defaultButtonPress, structure));
+    // controller.rightBumper().onTrue(Commands.runOnce(structure::alignButtonPress, structure));
+    // controller.rightTrigger().onTrue(Commands.runOnce(structure::placeButtonPress, structure));
+
+    new Trigger(() -> mainDriver.getRawButton(3))
+        .onTrue(Commands.runOnce(structure::intakeButtonPress, structure));
+    new Trigger(() -> mainDriver.getRawButton(4))
+        .onTrue(Commands.runOnce(structure::defaultButtonPress, structure));
+    new Trigger(() -> mainDriver.getRawButton(8))
+        .onTrue(Commands.runOnce(structure::alignButtonPress, structure));
+    new Trigger(() -> mainDriver.getRawButton(6))
+        .onTrue(Commands.runOnce(structure::placeButtonPress, structure));
 
     final Runnable resetGyro =
         Constants.currentMode == Constants.Mode.SIM
@@ -171,7 +199,7 @@ public class RobotContainer {
                             RobotState.getInstance().getEstimatedPose().getTranslation(),
                             AllianceFlipping.apply(Rotation2d.fromDegrees(180))));
 
-    new Trigger(() -> controller.getHID().getRawButton(7))
+    new Trigger(() -> mainDriver.getRawButton(9))
         .onTrue(Commands.runOnce(resetGyro).ignoringDisable(true));
   }
 
