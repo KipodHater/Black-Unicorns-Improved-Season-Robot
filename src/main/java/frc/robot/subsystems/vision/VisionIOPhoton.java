@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.RobotState;
+import frc.robot.util.VisionCorrection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -93,7 +94,14 @@ public class VisionIOPhoton implements VisionIO {
         // shuffle("txahhhh", target);
         SmartDashboard.putNumber("tx", target.getYaw());
         SmartDashboard.putNumber("groundtx", groundTx.getDegrees());
-        Rotation2d ty = Rotation2d.fromDegrees(target.getPitch());
+        Rotation2d ty =
+            Rotation2d.fromDegrees(
+                VisionCorrection.getCorrectedTy(
+                    target.getYaw(),
+                    target.getPitch(),
+                    -robotToCamera.getRotation().getY(),
+                    tagPose.get().getZ(),
+                    robotToCamera.getZ()));
         System.out.println(target.getPitch());
 
         // System.out.println(tagPose.get().getTranslation().toTranslation2d());
