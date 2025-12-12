@@ -39,11 +39,10 @@ public class Vision extends SubsystemBase {
           new Alert("Vision camera " + io[i].getName() + "is dissconnected!", AlertType.kWarning);
   }
 
-  @Override
   public void periodic() {
     for (int i = 0; i < io.length; i++) {
       io[i].updateInputs(inputs[i]);
-      Logger.processInputs("Vision/Camera " + io[i].getName(), inputs[i]);
+      // Logger.processInputs("Vision/Camera " + io[i].getName(), inputs[i]);
     }
 
     // Initialize logging values
@@ -107,7 +106,7 @@ public class Vision extends SubsystemBase {
           angularStdDev *= cameraStdDevFactors[cameraIndex];
         }
 
-        // Send vision observation
+        // send to pose estimator
         consumer.accept(
             observation.pose().toPose2d(),
             observation.timestamp(),

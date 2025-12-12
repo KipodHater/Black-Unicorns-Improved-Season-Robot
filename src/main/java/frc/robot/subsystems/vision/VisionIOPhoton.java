@@ -7,9 +7,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.RobotState;
-import frc.robot.util.VisionCorrection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,8 +55,9 @@ public class VisionIOPhoton implements VisionIO {
       if (result.multitagResult.isPresent()) {
         var multitagResult = result.multitagResult.get();
 
-        fieldToCamera = multitagResult.estimatedPose.best;
-        fieldToRobot = robotToCamera.inverse().plus(fieldToCamera); // vector addition
+        // Calculate robot pose
+        Transform3d fieldToCamera = multitagResult.estimatedPose.best;
+        Transform3d fieldToRobot = fieldToCamera.plus(robotToCamera.inverse());
         Pose3d robotPose = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
 
         double totalTagDistance = 0.0;
@@ -88,25 +87,11 @@ public class VisionIOPhoton implements VisionIO {
         // // Calculate robot pose
         var tagPose = aprilTagLayout.getTagPose(target.fiducialId);
 
-        Rotation2d robotAngle =
-            RobotState.getInstance().getEstimatedPose(result.getTimestampSeconds()).getRotation();
-        Rotation2d groundTx = projectTxBetweenPlanes(Rotation2d.fromDegrees(-target.getYaw()));
-        // shuffle("txahhhh", target);
-        SmartDashboard.putNumber("tx", target.getYaw());
-        SmartDashboard.putNumber("groundtx", groundTx.getDegrees());
-        Rotation2d ty =
-            Rotation2d.fromDegrees(
-                VisionCorrection.getCorrectedTy(
-                    target.getYaw(),
-                    target.getPitch(),
-                    -robotToCamera.getRotation().getY(),
-                    tagPose.get().getZ(),
-                    robotToCamera.getZ()));
-        System.out.println(target.getPitch());
+        Rotation2d robotAngle = RobotState.getInstance().getRotation();
 
-        // System.out.println(tagPose.get().getTranslation().toTranslation2d());
-        // SmartDashboard.putNumber("tagHeight", );
-        // System.out.println(tagPose.get().getZ());
+        Rotation2d groundTx = projectTxBetweenPlanes(Rotation2d.fromDegrees(-target.getYaw()));
+        Rotation2d ty = Rotation2d.fromDegrees(target.getPitch());
+
         Rotation2d totalYaw =
             robotAngle
                 .plus(groundTx)
@@ -117,17 +102,32 @@ public class VisionIOPhoton implements VisionIO {
         Rotation2d totalPitch = ty.plus(new Rotation2d(-robotToCamera.getRotation().getY()));
         double height = tagPose.get().getZ() - (robotToCamera.getTranslation().getZ());
 
-        if (Math.abs(totalPitch.getTan()) < 0.001) continue;
-        double distance = height / totalPitch.getTan();
+        // if (Math.abs(totalPitch.getTan()) < 0.001) continue;
+        double distance =
+            // height / totalPitch.getTan();
+            target.getBestCameraToTarget().getTranslation().getNorm() * totalPitch.getCos();
+
         // Add tag ID
         tagIds.add((short) target.fiducialId);
 
+        Transform3d fieldToTarget =
+            new Transform3d(tagPose.get().getTranslation(), tagPose.get().getRotation());
+        Transform3d cameraToTarget = target.bestCameraToTarget;
+        Transform3d fieldToCamera = fieldToTarget.plus(cameraToTarget.inverse());
+        Transform3d fieldToRobot = fieldToCamera.plus(robotToCamera.inverse());
+        Pose3d robotPose1 = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
+        Logger.recordOutput("bestEstimation", robotPose1);
+
+        fieldToTarget =
+            new Transform3d(tagPose.get().getTranslation(), tagPose.get().getRotation());
+        cameraToTarget = target.altCameraToTarget;
+        fieldToCamera = fieldToTarget.plus(cameraToTarget.inverse());
+        fieldToRobot = fieldToCamera.plus(robotToCamera.inverse());
+        robotPose1 = new Pose3d(fieldToRobot.getTranslation(), fieldToRobot.getRotation());
+        Logger.recordOutput("alternateEstimation", robotPose1);
         // Translation2d distanceVector = new Translation2d(distance, totalYaw);
-        // System.out.println(totalYaw.getDegrees());
-        Logger.recordOutput("ahhhhhh", totalYaw.getDegrees());
 
         // Translation2d
-        // System.out.println(totalPitch.getDegrees());
         Pose2d cameraPose =
             new Pose2d(
                 tagPose.get().getX() + distance * totalYaw.getCos(),

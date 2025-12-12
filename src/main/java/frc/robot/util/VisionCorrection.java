@@ -3,7 +3,7 @@ package frc.robot.util;
 public class VisionCorrection {
 
   /**
-   * Corrects ty for large tx angles by accounting for perspective distortion
+   * Corrects ty with enhanced edge correction Works well in center, stronger correction at edges
    *
    * @param tx Horizontal angle to target (degrees)
    * @param ty Vertical angle to target (degrees) - raw from PhotonVision
@@ -18,93 +18,131 @@ public class VisionCorrection {
     // Convert to radians
     double txRad = Math.toRadians(tx);
     double tyRad = Math.toRadians(ty);
-    double pitchRad = Math.toRadians(cameraPitch);
 
-    // The key insight: when looking at large tx, the effective vertical angle
-    // is compressed due to the 3D rotation of the view plane
-
-    // Correct ty by accounting for the horizontal rotation
-    // As tx increases, the vertical component appears smaller
+    // Base correction that works well in the middle
     double correctedTyRad = Math.atan(Math.tan(tyRad) / Math.cos(txRad));
 
-    double correctedTy = Math.toDegrees(correctedTyRad);
+    // Additional edge correction - increases non-linearly with tx
+    // This accounts for lens distortion that's stronger at edges
+    double txAbs = Math.abs(tx);
 
-    return correctedTy;
+    // Edge correction factor - adjust these parameters
+    double edgeThreshold = 15.0; // Degrees where edge correction starts to kick in
+    double edgeStrength = 0.0015; // How strong the correction is (tune this)
+
+    if (txAbs > edgeThreshold) {
+      // Non-linear correction that increases at edges
+      // Using (tx - threshold)² so it doesn't affect center much
+      double edgeAmount = Math.pow(txAbs - edgeThreshold, 2);
+      double edgeCorrection = edgeStrength * edgeAmount;
+
+      // Apply correction (positive = makes ty more positive/up)
+      // Flip sign if your distortion goes the other direction
+      correctedTyRad += Math.toRadians(edgeCorrection);
+    }
+
+    return Math.toDegrees(correctedTyRad);
   }
 
   /**
-   * Alternative method: Empirical polynomial correction Tune the coefficients based on real
-   * measurements
+   * Version with tunable edge parameters Use this to dial in the exact correction for your camera
    *
    * @param tx Horizontal angle to target (degrees)
    * @param ty Vertical angle to target (degrees)
-   * @param a Linear coefficient (try 0.02-0.05)
-   * @param b Quadratic coefficient (try 0.0005-0.001)
-   * @return corrected ty with empirical adjustment
+   * @param cameraPitch Camera mount angle (degrees)
+   * @param targetHeight Height of AprilTag center (meters)
+   * @param cameraHeight Height of camera lens (meters)
+   * @param edgeThreshold Degrees where edge correction starts (try 10-20)
+   * @param edgeStrength How strong the edge correction is (try 0.001-0.003)
+   * @param edgePower Exponent for edge falloff (2 = quadratic, 3 = cubic, etc.)
+   * @return corrected ty
    */
-  public static double getCorrectedTyEmpirical(double tx, double ty, double a, double b) {
-    // Empirical correction: ty_corrected = ty + a*tx + b*tx²
-    // The sign depends on your camera distortion pattern
-    double txAbs = Math.abs(tx);
-    double correction = a * txAbs + b * txAbs * txAbs;
+  public static double getCorrectedTyTunable(
+      double tx,
+      double ty,
+      double cameraPitch,
+      double targetHeight,
+      double cameraHeight,
+      double edgeThreshold,
+      double edgeStrength,
+      double edgePower) {
 
-    // Add correction (might need to be subtracted depending on your distortion)
-    return ty + correction;
+    double txRad = Math.toRadians(tx);
+    double tyRad = Math.toRadians(ty);
+
+    // Base correction
+    double correctedTyRad = Math.atan(Math.tan(tyRad) / Math.cos(txRad));
+
+    // Edge correction
+    double txAbs = Math.abs(tx);
+
+    if (txAbs > edgeThreshold) {
+      double edgeAmount = Math.pow(txAbs - edgeThreshold, edgePower);
+      double edgeCorrection = edgeStrength * edgeAmount;
+      correctedTyRad += Math.toRadians(edgeCorrection);
+    }
+
+    return Math.toDegrees(correctedTyRad);
   }
 
   /**
-   * More sophisticated 3D transformation approach Projects the target position through proper 3D
-   * rotation
+   * Alternative: Smooth blending from center to edge Uses a smooth transition instead of a hard
+   * threshold
    */
-  public static double getCorrectedTy3D(double tx, double ty, double cameraPitch) {
+  public static double getCorrectedTySmooth(
+      double tx, double ty, double cameraPitch, double targetHeight, double cameraHeight) {
+
     double txRad = Math.toRadians(tx);
     double tyRad = Math.toRadians(ty);
-    double pitchRad = Math.toRadians(cameraPitch);
 
-    // Create unit vector pointing at target in camera frame
-    // Camera frame: X = right, Y = down, Z = forward
-    double x = Math.tan(txRad);
-    double y = Math.tan(tyRad);
-    double z = 1.0;
+    // Base correction
+    double correctedTyRad = Math.atan(Math.tan(tyRad) / Math.cos(txRad));
 
-    // Normalize
-    double magnitude = Math.sqrt(x * x + y * y + z * z);
-    x /= magnitude;
-    y /= magnitude;
-    z /= magnitude;
+    // Smooth edge correction using a sigmoid-like function
+    double txAbs = Math.abs(tx);
 
-    // Rotate by camera pitch to get robot frame
-    // Robot frame: Y is still vertical
-    double yRobot = y * Math.cos(pitchRad) + z * Math.sin(pitchRad);
-    double zRobot = -y * Math.sin(pitchRad) + z * Math.cos(pitchRad);
+    // Blend factor: 0 at center, approaches 1 at edges
+    // Adjust 20.0 to control where blending starts (lower = earlier)
+    double blendFactor = 1.0 - Math.exp(-Math.pow(txAbs / 20.0, 2));
 
-    // Calculate the effective vertical angle in robot frame
-    double correctedTyRad = Math.atan2(yRobot, Math.sqrt(x * x + zRobot * zRobot));
+    // Additional correction at edges (tune this value)
+    double maxEdgeCorrection = 0.05 * txAbs; // Increases linearly with tx
 
-    return Math.toDegrees(correctedTyRad) - cameraPitch;
+    // Apply blended correction
+    correctedTyRad += Math.toRadians(maxEdgeCorrection * blendFactor);
+
+    return Math.toDegrees(correctedTyRad);
   }
 
-  /** Returns a confidence value based on tx angle */
-  public static double getConfidence(double tx) {
-    double txRad = Math.toRadians(tx);
-    return Math.pow(Math.cos(txRad), 2);
+  /**
+   * Helper method to test and compare corrections Use this to find the best parameters for your
+   * camera
+   */
+  public static void printComparisonTable(
+      double ty, double cameraPitch, double targetHeight, double cameraHeight) {
+    System.out.println("TX\tRaw TY\tCorrected TY\tDifference");
+    for (double tx = 0; tx <= 30; tx += 5) {
+      double corrected = getCorrectedTy(tx, ty, cameraPitch, targetHeight, cameraHeight);
+      System.out.printf("%.1f\t%.2f\t%.2f\t\t%.2f\n", tx, ty, corrected, corrected - ty);
+    }
   }
 
-  // Example usage - try all three methods and see which works best:
+  // Tuning guide:
   /*
-  double tx = target.getYaw();
-  double ty = target.getPitch();
+  1. Start with getCorrectedTy() - it works well in middle
 
-  // Method 1: Simple geometric correction
-  double correctedTy1 = VisionCorrection.getCorrectedTy(tx, ty, CAMERA_PITCH,
-                                                        APRILTAG_HEIGHT, CAMERA_HEIGHT);
+  2. If edges are still off, try getCorrectedTyTunable():
+     - edgeThreshold: where does it start getting inaccurate? (typically 15-25°)
+     - edgeStrength: how much correction needed? Start at 0.001, increase slowly
+     - edgePower: 2 for smooth, 3 for more aggressive at far edges
 
-  // Method 2: Empirical (tune a and b based on your measurements)
-  double correctedTy2 = VisionCorrection.getCorrectedTyEmpirical(tx, ty, 0.03, 0.0008);
+  3. Test at known positions:
+     double correctedTy = getCorrectedTyTunable(tx, ty, CAMERA_PITCH,
+                                                 APRILTAG_HEIGHT, CAMERA_HEIGHT,
+                                                 15.0,  // edgeThreshold
+                                                 0.0018, // edgeStrength - TUNE THIS
+                                                 2.0);   // edgePower
 
-  // Method 3: Full 3D transformation
-  double correctedTy3 = VisionCorrection.getCorrectedTy3D(tx, ty, CAMERA_PITCH);
-
-  // Test which one gives you better results!
+  4. If you want super smooth behavior, try getCorrectedTySmooth()
   */
 }
